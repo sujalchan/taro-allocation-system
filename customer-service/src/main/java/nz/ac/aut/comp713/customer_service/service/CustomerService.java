@@ -38,9 +38,9 @@ public class CustomerService {
     // Create a new customer
     public CustomerResponse createCustomer(CustomerRequest request) {
         Customer customer = new Customer();
-        customer.setName(customer.getName());
-        customer.setContactName(customer.getContactName());
-        customer.setPhone(customer.getPhone());
+        customer.setName(request.name());
+        customer.setContactName(request.contactName());
+        customer.setPhone(request.phone());
 
         // Set the active status if provided in the request
         if (request.active() != null) {
