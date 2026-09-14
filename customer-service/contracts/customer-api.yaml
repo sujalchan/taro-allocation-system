@@ -51,11 +51,17 @@ paths:
               schema:
                 type: string
                 format: uri
-
+              example: http://localhost:8081/api/v1/customers/1
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/CustomerResponse"
+              example:
+                id: 1
+                name: Island Foods
+                contactName: John
+                phone: "0211234567"
+                active: true
 
         "400":
           description: Invalid customer data
@@ -66,6 +72,17 @@ paths:
               example:
                 code: VALIDATION_ERROR
                 message: Customer name is required
+                path: /api/v1/customers
+
+        "409":
+          description: Customer already exists
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                code: CUSTOMER_ALREADY_EXISTS
+                message: Customer 'Island Foods' already exists.
                 path: /api/v1/customers
 
   /api/v1/customers/{id}:
@@ -90,6 +107,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/CustomerResponse"
+              example:
+                id: 1
+                name: Island Foods
+                contactName: John
+                phone: "0211234567"
+                active: true
 
         "404":
           description: Customer not found
@@ -99,7 +122,7 @@ paths:
                 $ref: "#/components/schemas/ApiError"
               example:
                 code: CUSTOMER_NOT_FOUND
-                message: Customer 999 does not exist
+                message: "Customer not found with id: 999"
                 path: /api/v1/customers/999
 
 components:
@@ -113,6 +136,7 @@ components:
       properties:
         name:
           type: string
+          minLength: 1
           example: Island Foods
 
         contactName:
@@ -173,7 +197,7 @@ components:
 
         message:
           type: string
-          example: Customer 999 does not exist
+          example: "Customer not found with id: 999"
 
         path:
           type: string
