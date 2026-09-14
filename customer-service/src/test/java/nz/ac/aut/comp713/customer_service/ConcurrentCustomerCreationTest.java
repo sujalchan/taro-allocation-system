@@ -29,12 +29,13 @@ class ConcurrentCustomerCreationTest {
     @Autowired
     private CustomerRepository customerRepository;
 
+    // reset the database before each test
     @BeforeEach
-    // Don't remove as the method is used.
     void resetDatabase() {
         customerRepository.deleteAll();
     }
 
+    // test that only one of two concurrent requests can create the same customer
     @Test
     void onlyOneConcurrentRequestCanCreateSameCustomer() throws Exception {
 
@@ -58,9 +59,9 @@ class ConcurrentCustomerCreationTest {
                 start.await();
 
                 return mockMvc.perform(
-                                post("/api/v1/customers")
-                                        .contentType(MediaType.APPLICATION_JSON)
-                                        .content(requestBody))
+                        post("/api/v1/customers")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(requestBody))
                         .andReturn();
             });
 
@@ -69,9 +70,9 @@ class ConcurrentCustomerCreationTest {
                 start.await();
 
                 return mockMvc.perform(
-                                post("/api/v1/customers")
-                                        .contentType(MediaType.APPLICATION_JSON)
-                                        .content(requestBody))
+                        post("/api/v1/customers")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(requestBody))
                         .andReturn();
             });
 
@@ -97,20 +98,17 @@ class ConcurrentCustomerCreationTest {
             assertEquals(
                     1,
                     createdCount,
-                    "Exactly one request should create the customer"
-            );
+                    "Exactly one request should create the customer");
 
             assertEquals(
                     1,
                     conflictCount,
-                    "Exactly one request should receive 409 Conflict"
-            );
+                    "Exactly one request should receive 409 Conflict");
 
             assertEquals(
                     1,
                     customerRepository.count(),
-                    "Only one customer row should exist"
-            );
+                    "Only one customer row should exist");
 
         } finally {
             executor.shutdownNow();
