@@ -2,12 +2,13 @@ package nz.ac.aut.comp713.customer_service.service;
 
 import java.util.List;
 
-import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.orm.jpa.JpaSystemException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import nz.ac.aut.comp713.customer_service.dto.CustomerRequest;
 import nz.ac.aut.comp713.customer_service.dto.CustomerResponse;
+import nz.ac.aut.comp713.customer_service.exception.CustomerAlreadyExistsException;
 import nz.ac.aut.comp713.customer_service.exception.CustomerNotFoundException;
 import nz.ac.aut.comp713.customer_service.model.Customer;
 import nz.ac.aut.comp713.customer_service.repository.CustomerRepository;
@@ -57,10 +58,10 @@ public class CustomerService {
 
         // Save the customer entity to the database
         try {
-            Customer savedCustomer = customerRepository.save(customer);
+            Customer savedCustomer = customerRepository.saveAndFlush(customer);
             return toResponse(savedCustomer);
-        } catch (DataIntegrityViolationException e) {
-            throw new IllegalArgumentException(name);
+        } catch (JpaSystemException e) {
+            throw new CustomerAlreadyExistsException(name);
         }
     }
 

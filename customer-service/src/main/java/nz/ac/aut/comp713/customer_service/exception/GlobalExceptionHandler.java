@@ -64,4 +64,19 @@ public class GlobalExceptionHandler {
                                 .badRequest()
                                 .body(error);
         }
+
+        @ExceptionHandler(Exception.class)
+        public ResponseEntity<ApiError> handleGenericException(
+                        Exception exception,
+                        HttpServletRequest request) {
+
+                ApiError error = new ApiError(
+                                "INTERNAL_SERVER_ERROR",
+                                "An unexpected error occurred",
+                                request.getRequestURI());
+
+                return ResponseEntity
+                                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                                .body(error);
+        }
 }
