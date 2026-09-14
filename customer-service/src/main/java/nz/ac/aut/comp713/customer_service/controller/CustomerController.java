@@ -18,6 +18,14 @@ import nz.ac.aut.comp713.customer_service.dto.CustomerRequest;
 import nz.ac.aut.comp713.customer_service.dto.CustomerResponse;
 import nz.ac.aut.comp713.customer_service.service.CustomerService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+
+import nz.ac.aut.comp713.customer_service.dto.ApiError;
+
 @RestController
 @RequestMapping("/api/v1/customers")
 public class CustomerController {
@@ -33,11 +41,22 @@ public class CustomerController {
         return customerService.getAllCustomers();
     }
 
+    @Operation(summary = "Retrieve a customer by ID")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Customer retrieved successfully"),
+            @ApiResponse(responseCode = "404", description = "Customer not found", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiError.class)))
+    })
     @GetMapping("/{id}")
     public CustomerResponse getCustomerById(@PathVariable Long id) {
         return customerService.getCustomerById(id);
     }
 
+    @Operation(summary = "Create a customer")
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "Customer created successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid customer data", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiError.class))),
+            @ApiResponse(responseCode = "409", description = "Customer already exists", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiError.class)))
+    })
     @PostMapping
     public ResponseEntity<CustomerResponse> createCustomer(
             @Valid @RequestBody CustomerRequest request) {
@@ -55,6 +74,13 @@ public class CustomerController {
                 .body(created);
     }
 
+    @Operation(summary = "Update an existing customer")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Customer updated successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid customer data", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiError.class))),
+            @ApiResponse(responseCode = "404", description = "Customer not found", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiError.class))),
+            @ApiResponse(responseCode = "409", description = "Customer name already exists", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiError.class)))
+    })
     @PutMapping("/{id}")
     public CustomerResponse updateCustomer(
             @PathVariable Long id,
