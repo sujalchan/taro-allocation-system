@@ -2,7 +2,9 @@ package nz.ac.aut.comp713.customer_service.service;
 
 import java.util.List;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import nz.ac.aut.comp713.customer_service.dto.CustomerRequest;
 import nz.ac.aut.comp713.customer_service.dto.CustomerResponse;
@@ -36,9 +38,15 @@ public class CustomerService {
     }
 
     // Create a new customer
+    @Transactional
     public CustomerResponse createCustomer(CustomerRequest request) {
+
+        String name = request.name();
+        String normalizedName = name.toLowerCase().replaceAll("\\s+", "");
+
         Customer customer = new Customer();
-        customer.setName(request.name());
+        customer.setName(name);
+        customer.setNormalizedName(normalizedName);
         customer.setContactName(request.contactName());
         customer.setPhone(request.phone());
 
@@ -48,8 +56,12 @@ public class CustomerService {
         }
 
         // Save the customer entity to the database
-        Customer savedCustomer = customerRepository.save(customer);
-        return toResponse(savedCustomer);
+        try {
+            Customer savedCustomer = customerRepository.save(customer);
+            return toResponse(savedCustomer);
+        } catch (DataIntegrityViolationException e) {
+            throw new IllegalArgumentException(name);
+        }
     }
 
     // Helper method to convert Customer entity to CustomerResponse DTO

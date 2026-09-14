@@ -1,5 +1,6 @@
 package nz.ac.aut.comp713.customer_service.model;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -14,7 +15,11 @@ public class Customer {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false)
     private String name;
+    @Column(nullable = false, unique = true)
+    private String normalizedName;
+
     private String contactName;
     private String phone;
     private boolean active = true;
@@ -43,6 +48,14 @@ public class Customer {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getNormalizedName() {
+        return normalizedName;
+    }
+
+    public void setNormalizedName(String normalizedName) {
+        this.normalizedName = normalizedName;
     }
 
     public String getContactName() {
