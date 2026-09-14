@@ -4,6 +4,9 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
+import nz.ac.aut.comp713.customer_service.dto.CustomerRequest;
+import nz.ac.aut.comp713.customer_service.dto.CustomerResponse;
+import nz.ac.aut.comp713.customer_service.exception.CustomerNotFoundException;
 import nz.ac.aut.comp713.customer_service.model.Customer;
 import nz.ac.aut.comp713.customer_service.repository.CustomerRepository;
 
@@ -16,16 +19,46 @@ public class CustomerService {
         this.customerRepository = customerRepository;
     }
 
-    public List<Customer> getAllCustomers() {
-        return customerRepository.findAll();
+    // Get all customers
+    public List<CustomerResponse> getAllCustomers() {
+        return customerRepository.findAll()
+                .stream()
+                .map(this::toResponse)
+                .toList();
     }
 
-    public Customer getCustomerById(Long id) {
-        return customerRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Customer not found with id: " + id));
+    // Get a customer by ID
+    public CustomerResponse getCustomerById(Long id) {
+        Customer customer = customerRepository.findById(id)
+                .orElseThrow(() -> new CustomerNotFoundException(id));
+
+        return toResponse(customer);
     }
 
-    public Customer createCustomer(Customer customer) {
-        return customerRepository.save(customer);
+    // Create a new customer
+    public CustomerResponse createCustomer(CustomerRequest request) {
+        Customer customer = new Customer();
+        customer.setName(customer.getName());
+        customer.setContactName(customer.getContactName());
+        customer.setPhone(customer.getPhone());
+
+        // Set the active status if provided in the request
+        if (request.active() != null) {
+            customer.setActive(request.active());
+        }
+
+        // Save the customer entity to the database
+        Customer savedCustomer = customerRepository.save(customer);
+        return toResponse(savedCustomer);
+    }
+
+    // Helper method to convert Customer entity to CustomerResponse DTO
+    private CustomerResponse toResponse(Customer customer) {
+        return new CustomerResponse(
+                customer.getId(),
+                customer.getName(),
+                customer.getContactName(),
+                customer.getPhone(),
+                customer.isActive());
     }
 }
