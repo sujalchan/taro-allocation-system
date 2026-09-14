@@ -29,6 +29,7 @@ class CustomerApiTest {
 
         // reset the database before each test
         @BeforeEach
+        @SuppressWarnings("unused")
         void resetDatabase() {
                 customerRepository.deleteAll();
         }
