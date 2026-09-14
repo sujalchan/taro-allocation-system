@@ -125,6 +125,79 @@ paths:
                 message: "Customer not found with id: 999"
                 path: /api/v1/customers/999
 
+    put:
+      summary: Update an existing customer
+      operationId: updateCustomer
+
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Customer ID
+          schema:
+            type: integer
+            format: int64
+            example: 1
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CustomerRequest"
+            example:
+              name: Island Foods
+              contactName: James
+              phone: "0219999999"
+              active: true
+
+      responses:
+        "200":
+          description: Customer updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CustomerResponse"
+              example:
+                id: 1
+                name: Island Foods
+                contactName: James
+                phone: "0219999999"
+                active: true
+
+        "400":
+          description: Invalid customer data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                code: VALIDATION_ERROR
+                message: Customer name is required
+                path: /api/v1/customers/1
+
+        "404":
+          description: Customer not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                code: CUSTOMER_NOT_FOUND
+                message: "Customer not found with id: 999"
+                path: /api/v1/customers/999
+
+        "409":
+          description: Customer name already exists
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                code: CUSTOMER_ALREADY_EXISTS
+                message: Customer 'Island Foods' already exists.
+                path: /api/v1/customers/2
+
 components:
   schemas:
     CustomerRequest:

@@ -65,6 +65,34 @@ public class CustomerService {
         }
     }
 
+    // Update an existing customer
+    @Transactional
+    public CustomerResponse updateCustomer(Long id, CustomerRequest request) {
+        Customer customer = customerRepository.findById(id)
+                .orElseThrow(() -> new CustomerNotFoundException(id));
+
+        String name = request.name();
+        String normalizedName = name.toLowerCase().replaceAll("\\s+", "");
+
+        customer.setName(name);
+        customer.setNormalizedName(normalizedName);
+        customer.setContactName(request.contactName());
+        customer.setPhone(request.phone());
+
+        // Set the active status if provided in the request
+        if (request.active() != null) {
+            customer.setActive(request.active());
+        }
+
+        // Save the updated customer entity to the database
+        try {
+            Customer updatedCustomer = customerRepository.saveAndFlush(customer);
+            return toResponse(updatedCustomer);
+        } catch (JpaSystemException e) {
+            throw new CustomerAlreadyExistsException(name);
+        }
+    }
+
     // Helper method to convert Customer entity to CustomerResponse DTO
     private CustomerResponse toResponse(Customer customer) {
         return new CustomerResponse(
