@@ -12,6 +12,38 @@ import nz.ac.aut.comp713.customer_service.dto.ApiError;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+        // handle taro type not found errors
+        @ExceptionHandler(TaroTypeNotFoundException.class)
+        public ResponseEntity<ApiError> handleTaroTypeNotFound(
+                        TaroTypeNotFoundException exception,
+                        HttpServletRequest request) {
+
+                ApiError error = new ApiError(
+                                "TARO_TYPE_NOT_FOUND",
+                                exception.getMessage(),
+                                request.getRequestURI());
+
+                return ResponseEntity
+                                .status(HttpStatus.NOT_FOUND)
+                                .body(error);
+        }
+
+        // handle duplicate taro type errors
+        @ExceptionHandler(TaroTypeAlreadyExistsException.class)
+        public ResponseEntity<ApiError> handleTaroTypeAlreadyExists(
+                        TaroTypeAlreadyExistsException exception,
+                        HttpServletRequest request) {
+
+                ApiError error = new ApiError(
+                                "TARO_TYPE_ALREADY_EXISTS",
+                                exception.getMessage(),
+                                request.getRequestURI());
+
+                return ResponseEntity
+                                .status(HttpStatus.CONFLICT)
+                                .body(error);
+        }
+
         @ExceptionHandler(CustomerNotFoundException.class)
         public ResponseEntity<ApiError> handleCustomerNotFound(
                         CustomerNotFoundException exception,
