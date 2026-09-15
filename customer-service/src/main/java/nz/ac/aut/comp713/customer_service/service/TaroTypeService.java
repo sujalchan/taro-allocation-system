@@ -2,7 +2,7 @@ package nz.ac.aut.comp713.customer_service.service;
 
 import java.util.List;
 
-import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.orm.jpa.JpaSystemException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -54,7 +54,7 @@ public class TaroTypeService {
         try {
             TaroType savedTaroType = taroTypeRepository.saveAndFlush(taroType);
             return toResponse(savedTaroType);
-        } catch (DataIntegrityViolationException e) {
+        } catch (JpaSystemException e) {
             throw new TaroTypeAlreadyExistsException(name);
         }
     }
@@ -76,7 +76,7 @@ public class TaroTypeService {
         try {
             TaroType savedTaroType = taroTypeRepository.saveAndFlush(taroType);
             return toResponse(savedTaroType);
-        } catch (DataIntegrityViolationException e) {
+        } catch (JpaSystemException e) {
             throw new TaroTypeAlreadyExistsException(name);
         }
     }
