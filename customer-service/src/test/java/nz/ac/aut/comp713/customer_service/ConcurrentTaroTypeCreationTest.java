@@ -7,6 +7,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,37 +16,37 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 
-import nz.ac.aut.comp713.customer_service.repository.CustomerRepository;
+import nz.ac.aut.comp713.customer_service.repository.TaroTypeRepository;
 
 @SpringBootTest
 @AutoConfigureMockMvc
-class ConcurrentCustomerCreationTest {
+class ConcurrentTaroTypeCreationTest {
 
         @Autowired
         private MockMvc mockMvc;
 
         @Autowired
-        private CustomerRepository customerRepository;
+        private TaroTypeRepository taroTypeRepository;
 
         // reset the database before each test
         @BeforeEach
         @SuppressWarnings("unused")
         void resetDatabase() {
-                customerRepository.deleteAll();
+                taroTypeRepository.deleteAll();
         }
 
-        // test that only one of two concurrent requests can create the same customer
+        // test that only one of two concurrent requests can create the same taro type
         @Test
-        void onlyOneConcurrentRequestCanCreateSameCustomer() throws Exception {
+        void onlyOneConcurrentRequestCanCreateSameTaroType() throws Exception {
 
                 String requestBody = """
                                 {
-                                "name": "Island Foods",
-                                "contactName": "John",
-                                "phone": "0211234567",
-                                "active": true
+                                "name": "Samoan Taro",
+                                "description": "Large premium taro",
+                                "standardPrice": 50.00
                                 }
                                 """;
 
@@ -60,7 +61,7 @@ class ConcurrentCustomerCreationTest {
                                 start.await();
 
                                 return mockMvc.perform(
-                                                post("/api/v1/customers")
+                                                post("/api/v1/taro-types")
                                                                 .contentType(MediaType.APPLICATION_JSON)
                                                                 .content(requestBody))
                                                 .andReturn();
@@ -71,7 +72,7 @@ class ConcurrentCustomerCreationTest {
                                 start.await();
 
                                 return mockMvc.perform(
-                                                post("/api/v1/customers")
+                                                post("/api/v1/taro-types")
                                                                 .contentType(MediaType.APPLICATION_JSON)
                                                                 .content(requestBody))
                                                 .andReturn();
@@ -99,7 +100,7 @@ class ConcurrentCustomerCreationTest {
                         assertEquals(
                                         1,
                                         createdCount,
-                                        "Exactly one request should create the customer");
+                                        "Exactly one request should create the taro type");
 
                         assertEquals(
                                         1,
@@ -108,8 +109,8 @@ class ConcurrentCustomerCreationTest {
 
                         assertEquals(
                                         1,
-                                        customerRepository.count(),
-                                        "Only one customer row should exist");
+                                        taroTypeRepository.count(),
+                                        "Only one taro type row should exist");
 
                 } finally {
                         executor.shutdownNow();
