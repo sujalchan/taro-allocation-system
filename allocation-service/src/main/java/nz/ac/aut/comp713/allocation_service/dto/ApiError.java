@@ -1,4 +1,4 @@
-package nz.ac.aut.comp713.customer_service.dto;
+package nz.ac.aut.comp713.allocation_service.dto;
 
 // API error response DTO
 public record ApiError(
