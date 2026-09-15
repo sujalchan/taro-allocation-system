@@ -12,5 +12,5 @@ public record AllocationItemRequest(
 
         @NotNull(message = "Quantity is required") @Positive(message = "Quantity must be greater than zero") Integer quantity,
 
-        @NotNull(message = "Price per kg is required") @DecimalMin(value = "0.00", inclusive = true, message = "Price per kg cannot be negative") BigDecimal pricePerKg) {
+        @DecimalMin(value = "0.00", inclusive = true, message = "Price per kg cannot be negative") BigDecimal pricePerKg) {
 }
