@@ -164,6 +164,26 @@ class CustomerApiTest {
                                 customerRepository.count());
         }
 
+        // test that invalid phone numbers are rejected
+        @Test
+        void invalidPhoneReturns400() throws Exception {
+                mockMvc.perform(post("/api/v1/customers")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                                {
+                                                "name": "Test Customer",
+                                                "contactName": "Sujal",
+                                                "phone": "Sujal",
+                                                "active": true
+                                                }
+                                                """))
+                                .andExpect(status().isBadRequest())
+                                .andExpect(jsonPath("$.code")
+                                                .value("VALIDATION_ERROR"))
+                                .andExpect(jsonPath("$.message")
+                                                .value("Phone number must contain 7 to 15 digits"));
+        }
+
         // test updating an existing customer's details
         @Test
         void updateCustomerReturnsUpdatedCustomer() throws Exception {

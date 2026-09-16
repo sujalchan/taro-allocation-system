@@ -399,6 +399,8 @@ components:
 
         phone:
           type: string
+          description: Optional phone number containing 7 to 15 digits, optionally starting with +
+          pattern: '^\+?[0-9]{7,15}$'
           example: "0211234567"
 
         active:
