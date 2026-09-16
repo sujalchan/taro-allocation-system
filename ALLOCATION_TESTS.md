@@ -710,6 +710,353 @@ Expected response:
 }
 ```
 
+# Weekly Allocation Update Tests
+
+The following tests verify the `PUT /api/v1/allocations/{id}` endpoint.
+
+These tests assume allocation `1` currently belongs to customer `1` for the week starting `2026-09-14`.
+
+## 24. Update an existing weekly allocation
+
+This test replaces the existing allocation items.
+
+A custom price of `48.00` is supplied for Samoan Taro, while Fiji Taro has no custom price and should therefore use its standard price of `45.00`.
+
+```bash
+curl -i -X PUT http://localhost:8082/api/v1/allocations/1 \
+  -H "Content-Type: application/json" \
+  -d '{
+    "customerId": 1,
+    "weekStart": "2026-09-14",
+    "allocationItems": [
+      {
+        "taroTypeId": 1,
+        "quantity": 150,
+        "pricePerKg": 48.00
+      },
+      {
+        "taroTypeId": 2,
+        "quantity": 30
+      }
+    ]
+  }'
+```
+
+Expected:
+
+```text
+HTTP/1.1 200
+```
+
+Expected values:
+
+```text
+Samoan Taro -> quantity 150, pricePerKg 48.00
+Fiji Taro   -> quantity 30, pricePerKg 45.00
+```
+
+---
+
+## 25. Confirm updated allocation persisted
+
+```bash
+curl -i http://localhost:8082/api/v1/allocations/1
+```
+
+Expected:
+
+```text
+HTTP/1.1 200
+```
+
+The response should contain the replacement allocation items created in the previous test.
+
+---
+
+## 26. Update a missing allocation
+
+```bash
+curl -i -X PUT http://localhost:8082/api/v1/allocations/999 \
+  -H "Content-Type: application/json" \
+  -d '{
+    "customerId": 1,
+    "weekStart": "2026-09-14",
+    "allocationItems": [
+      {
+        "taroTypeId": 1,
+        "quantity": 100
+      }
+    ]
+  }'
+```
+
+Expected:
+
+```text
+HTTP/1.1 404
+```
+
+Expected error code:
+
+```text
+WEEKLY_ALLOCATION_NOT_FOUND
+```
+
+---
+
+## 27. Update allocation to an existing customer and week combination
+
+Customer `1` already has another allocation for `2026-09-21`, so allocation `1` cannot be changed to use the same customer and week.
+
+```bash
+curl -i -X PUT http://localhost:8082/api/v1/allocations/1 \
+  -H "Content-Type: application/json" \
+  -d '{
+    "customerId": 1,
+    "weekStart": "2026-09-21",
+    "allocationItems": [
+      {
+        "taroTypeId": 1,
+        "quantity": 100
+      }
+    ]
+  }'
+```
+
+Expected:
+
+```text
+HTTP/1.1 409
+```
+
+Expected error code:
+
+```text
+WEEKLY_ALLOCATION_ALREADY_EXISTS
+```
+
+---
+
+## 28. Duplicate taro type in update
+
+```bash
+curl -i -X PUT http://localhost:8082/api/v1/allocations/1 \
+  -H "Content-Type: application/json" \
+  -d '{
+    "customerId": 1,
+    "weekStart": "2026-09-14",
+    "allocationItems": [
+      {
+        "taroTypeId": 1,
+        "quantity": 100
+      },
+      {
+        "taroTypeId": 1,
+        "quantity": 50
+      }
+    ]
+  }'
+```
+
+Expected:
+
+```text
+HTTP/1.1 400
+```
+
+Expected error code:
+
+```text
+DUPLICATE_TARO_TYPE
+```
+
+---
+
+## 29. Update using a missing customer
+
+```bash
+curl -i -X PUT http://localhost:8082/api/v1/allocations/1 \
+  -H "Content-Type: application/json" \
+  -d '{
+    "customerId": 999,
+    "weekStart": "2026-09-14",
+    "allocationItems": [
+      {
+        "taroTypeId": 1,
+        "quantity": 100
+      }
+    ]
+  }'
+```
+
+Expected:
+
+```text
+HTTP/1.1 404
+```
+
+Expected error code:
+
+```text
+CUSTOMER_NOT_FOUND
+```
+
+---
+
+## 30. Update using a missing taro type
+
+```bash
+curl -i -X PUT http://localhost:8082/api/v1/allocations/1 \
+  -H "Content-Type: application/json" \
+  -d '{
+    "customerId": 1,
+    "weekStart": "2026-09-14",
+    "allocationItems": [
+      {
+        "taroTypeId": 999,
+        "quantity": 100
+      }
+    ]
+  }'
+```
+
+Expected:
+
+```text
+HTTP/1.1 404
+```
+
+Expected error code:
+
+```text
+TARO_TYPE_NOT_FOUND
+```
+
+---
+
+## 31. Update using zero quantity
+
+```bash
+curl -i -X PUT http://localhost:8082/api/v1/allocations/1 \
+  -H "Content-Type: application/json" \
+  -d '{
+    "customerId": 1,
+    "weekStart": "2026-09-14",
+    "allocationItems": [
+      {
+        "taroTypeId": 1,
+        "quantity": 0
+      }
+    ]
+  }'
+```
+
+Expected:
+
+```text
+HTTP/1.1 400
+```
+
+Expected message:
+
+```text
+Quantity must be greater than zero
+```
+
+---
+
+## 32. Update using a negative price
+
+```bash
+curl -i -X PUT http://localhost:8082/api/v1/allocations/1 \
+  -H "Content-Type: application/json" \
+  -d '{
+    "customerId": 1,
+    "weekStart": "2026-09-14",
+    "allocationItems": [
+      {
+        "taroTypeId": 1,
+        "quantity": 100,
+        "pricePerKg": -5
+      }
+    ]
+  }'
+```
+
+Expected:
+
+```text
+HTTP/1.1 400
+```
+
+Expected message:
+
+```text
+Price per kg cannot be negative
+```
+
+---
+
+## 33. PUT allocation while customer-service is unavailable
+
+Stop `customer-service` while leaving `allocation-service` running.
+
+```bash
+curl -i -X PUT http://localhost:8082/api/v1/allocations/1 \
+  -H "Content-Type: application/json" \
+  -d '{
+    "customerId": 1,
+    "weekStart": "2026-09-14",
+    "allocationItems": [
+      {
+        "taroTypeId": 1,
+        "quantity": 200
+      }
+    ]
+  }'
+```
+
+Expected:
+
+```text
+HTTP/1.1 503
+```
+
+Expected response:
+
+```json
+{
+  "code": "CUSTOMER_SERVICE_UNAVAILABLE",
+  "message": "Customer service is currently unavailable",
+  "path": "/api/v1/allocations/1"
+}
+```
+
+---
+
+## 34. Confirm failed updates did not modify the allocation
+
+Restart `customer-service`, then retrieve allocation `1`.
+
+```bash
+curl -i http://localhost:8082/api/v1/allocations/1
+```
+
+Expected:
+
+```text
+HTTP/1.1 200
+```
+
+The allocation should still contain the successful update from test 24:
+
+```text
+Samoan Taro -> quantity 150, pricePerKg 48
+Fiji Taro   -> quantity 30, pricePerKg 45
+```
+
+This confirms that failed update requests did not corrupt or partially modify the stored allocation.
+
 ---
 
 # Summary
@@ -729,4 +1076,11 @@ These commands reproduce the manual tests for:
 - missing customer handling
 - missing taro type handling
 - request validation
+- successful weekly allocation updates
+- replacement of allocation items during updates
+- default pricing during updates
+- duplicate customer/week protection during updates
+- PUT request validation
+- failed update rollback/data integrity
+- PUT handling when customer-service is unavailable
 - downstream `customer-service` failure handling
