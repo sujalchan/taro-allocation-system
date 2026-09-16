@@ -125,6 +125,81 @@ public class WeeklyAllocationService {
         return toResponse(savedAllocation);
     }
 
+    // update a existing weekly allocation
+    @Transactional
+    public WeeklyAllocationResponse updateWeeklyAllocation(
+            Long id,
+            WeeklyAllocationRequest request) {
+
+        // confirm the allocation exists
+        WeeklyAllocation weeklyAllocation = weeklyAllocationRepository.findById(id)
+                .orElseThrow(() -> new WeeklyAllocationNotFoundException(id));
+
+        // confirm the customer exists in customer-service
+        customerClient.getCustomer(request.customerId());
+
+        // make sure another allocation does not already use this customer and week
+        if (weeklyAllocationRepository.existsByCustomerIdAndWeekStartAndIdNot(
+                request.customerId(),
+                request.weekStart(),
+                id)) {
+
+            throw new WeeklyAllocationAlreadyExistsException(
+                    request.customerId(),
+                    request.weekStart());
+        }
+
+        // confirm every taro type exists and prevent duplicate taro types
+        Set<Long> taroTypeIds = new HashSet<>();
+        Map<Long, TaroTypeResponse> taroTypes = new HashMap<>();
+
+        for (AllocationItemRequest item : request.allocationItems()) {
+
+            if (!taroTypeIds.add(item.taroTypeId())) {
+                throw new DuplicateTaroTypeException(item.taroTypeId());
+            }
+
+            TaroTypeResponse taroType = customerClient.getTaroType(item.taroTypeId());
+
+            taroTypes.put(item.taroTypeId(), taroType);
+        }
+
+        // update the weekly allocation
+        weeklyAllocation.setCustomerId(request.customerId());
+        weeklyAllocation.setWeekStart(request.weekStart());
+
+        WeeklyAllocation savedAllocation;
+
+        try {
+            savedAllocation = weeklyAllocationRepository.saveAndFlush(weeklyAllocation);
+
+        } catch (DataIntegrityViolationException | JpaSystemException exception) {
+
+            // the database constraint is the final protection against
+            // duplicate customer and week combinations
+            throw new WeeklyAllocationAlreadyExistsException(
+                    request.customerId(),
+                    request.weekStart());
+        }
+
+        // remove the old allocation items
+        allocationItemRepository.deleteByWeeklyAllocationId(id);
+        allocationItemRepository.flush();
+
+        // create the replacement allocation items
+        List<AllocationItem> allocationItems = request.allocationItems()
+                .stream()
+                .map(itemRequest -> createAllocationItem(
+                        savedAllocation,
+                        itemRequest,
+                        taroTypes.get(itemRequest.taroTypeId())))
+                .toList();
+
+        allocationItemRepository.saveAllAndFlush(allocationItems);
+
+        return toResponse(savedAllocation);
+    }
+
     // create an allocation item entity from its request dto
     private AllocationItem createAllocationItem(
             WeeklyAllocation weeklyAllocation,
