@@ -8,4 +8,6 @@ import java.util.List;
 public interface AllocationItemRepository extends JpaRepository<AllocationItem, Long> {
 
     List<AllocationItem> findByWeeklyAllocationId(Long weeklyAllocationId);
+
+    void deleteByWeeklyAllocationId(Long weeklyAllocationId);
 }
