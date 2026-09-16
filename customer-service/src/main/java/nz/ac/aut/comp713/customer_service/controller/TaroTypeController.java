@@ -18,6 +18,14 @@ import nz.ac.aut.comp713.customer_service.dto.TaroTypeRequest;
 import nz.ac.aut.comp713.customer_service.dto.TaroTypeResponse;
 import nz.ac.aut.comp713.customer_service.service.TaroTypeService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+
+import nz.ac.aut.comp713.customer_service.dto.ApiError;
+
 @RestController
 @RequestMapping("/api/v1/taro-types")
 public class TaroTypeController {
@@ -29,18 +37,33 @@ public class TaroTypeController {
     }
 
     // get all taro types
+    @Operation(summary = "Retrieve all taro types")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Taro types retrieved successfully")
+    })
     @GetMapping
     public List<TaroTypeResponse> getAllTaroTypes() {
         return taroTypeService.getAllTaroTypes();
     }
 
     // get a taro type by id
+    @Operation(summary = "Retrieve a taro type by ID")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Taro type retrieved successfully"),
+            @ApiResponse(responseCode = "404", description = "Taro type not found", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiError.class)))
+    })
     @GetMapping("/{id}")
     public TaroTypeResponse getTaroTypeById(@PathVariable Long id) {
         return taroTypeService.getTaroTypeById(id);
     }
 
     // create a new taro type
+    @Operation(summary = "Create a taro type")
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "Taro type created successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid taro type data", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiError.class))),
+            @ApiResponse(responseCode = "409", description = "Taro type already exists", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiError.class)))
+    })
     @PostMapping
     public ResponseEntity<TaroTypeResponse> createTaroType(
             @Valid @RequestBody TaroTypeRequest request) {
@@ -59,6 +82,13 @@ public class TaroTypeController {
     }
 
     // update an existing taro type
+    @Operation(summary = "Update an existing taro type")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Taro type updated successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid taro type data", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiError.class))),
+            @ApiResponse(responseCode = "404", description = "Taro type not found", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiError.class))),
+            @ApiResponse(responseCode = "409", description = "Taro type name already exists", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiError.class)))
+    })
     @PutMapping("/{id}")
     public ResponseEntity<TaroTypeResponse> updateTaroType(
             @PathVariable Long id,
