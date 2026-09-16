@@ -241,6 +241,140 @@ paths:
                 message: An unexpected error occurred
                 path: /api/v1/allocations/1
 
+    put:
+      summary: Update a weekly allocation
+      operationId: updateWeeklyAllocation
+
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Weekly allocation ID
+          schema:
+            type: integer
+            format: int64
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WeeklyAllocationRequest"
+            example:
+              customerId: 1
+              weekStart: "2026-09-14"
+              allocationItems:
+                - taroTypeId: 1
+                  quantity: 150
+                  pricePerKg: 48.00
+                - taroTypeId: 2
+                  quantity: 30
+
+      responses:
+        "200":
+          description: Weekly allocation updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WeeklyAllocationResponse"
+              example:
+                id: 1
+                customerId: 1
+                customerName: Island Foods
+                weekStart: "2026-09-14"
+                allocationItems:
+                  - id: 5
+                    taroTypeId: 1
+                    taroTypeName: Samoan Taro
+                    quantity: 150
+                    pricePerKg: 48.00
+                  - id: 6
+                    taroTypeId: 2
+                    taroTypeName: Fiji Taro
+                    quantity: 30
+                    pricePerKg: 45.00
+
+        "400":
+          description: Invalid allocation update request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              examples:
+                validationError:
+                  summary: Validation error
+                  value:
+                    code: VALIDATION_ERROR
+                    message: Quantity must be greater than zero
+                    path: /api/v1/allocations/1
+
+                duplicateTaroType:
+                  summary: Duplicate taro type
+                  value:
+                    code: DUPLICATE_TARO_TYPE
+                    message: Taro type 1 cannot appear more than once in an allocation
+                    path: /api/v1/allocations/1
+
+        "404":
+          description: Allocation, customer, or taro type was not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              examples:
+                allocationNotFound:
+                  summary: Weekly allocation not found
+                  value:
+                    code: WEEKLY_ALLOCATION_NOT_FOUND
+                    message: "Weekly allocation not found with id: 999"
+                    path: /api/v1/allocations/999
+
+                customerNotFound:
+                  summary: Customer not found
+                  value:
+                    code: CUSTOMER_NOT_FOUND
+                    message: "Customer not found with id: 999"
+                    path: /api/v1/allocations/1
+
+                taroTypeNotFound:
+                  summary: Taro type not found
+                  value:
+                    code: TARO_TYPE_NOT_FOUND
+                    message: "Taro type not found with id: 999"
+                    path: /api/v1/allocations/1
+
+        "409":
+          description: Another weekly allocation already exists for the customer and week
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                code: WEEKLY_ALLOCATION_ALREADY_EXISTS
+                message: Weekly allocation already exists for customer 1 for week starting 2026-09-21
+                path: /api/v1/allocations/1
+
+        "503":
+          description: Customer service is unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                code: CUSTOMER_SERVICE_UNAVAILABLE
+                message: Customer service is currently unavailable
+                path: /api/v1/allocations/1
+
+        "500":
+          description: Unexpected server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                code: INTERNAL_SERVER_ERROR
+                message: An unexpected error occurred
+                path: /api/v1/allocations/1
 components:
   schemas:
     WeeklyAllocationRequest:
