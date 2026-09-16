@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Customers</title>
+</head>
+
+<body>
+
+    <h1>Customers</h1>
+
+    <p th:if="${#lists.isEmpty(customers)}">
+        No customers found.
+    </p>
+
+    <table th:if="${!#lists.isEmpty(customers)}" border="1">
+
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Business Name</th>
+                <th>Contact Name</th>
+                <th>Phone</th>
+                <th>Active</th>
+            </tr>
+        </thead>
+
+        <tbody>
+
+            <tr th:each="customer : ${customers}">
+
+                <td th:text="${customer.id}">
+                    1
+                </td>
+
+                <td th:text="${customer.name}">
+                    Island Foods
+                </td>
+
+                <td th:text="${customer.contactName}">
+                    John
+                </td>
+
+                <td th:text="${customer.phone}">
+                    0211234567
+                </td>
+
+                <td th:text="${customer.active ? 'Yes' : 'No'}">
+                    Yes
+                </td>
+
+            </tr>
+
+        </tbody>
+
+    </table>
+
+</body>
+
+</html>
