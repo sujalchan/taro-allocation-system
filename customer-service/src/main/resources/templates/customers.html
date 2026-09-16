@@ -29,6 +29,7 @@
                 <th>Contact Name</th>
                 <th>Phone</th>
                 <th>Active</th>
+                <th>Actions</th>
             </tr>
         </thead>
 
@@ -54,6 +55,12 @@
 
                 <td th:text="${customer.active ? 'Yes' : 'No'}">
                     Yes
+                </td>
+
+                <td>
+                    <a th:href="@{/customers/{id}/edit(id=${customer.id})}">
+                        Edit
+                    </a>
                 </td>
 
             </tr>

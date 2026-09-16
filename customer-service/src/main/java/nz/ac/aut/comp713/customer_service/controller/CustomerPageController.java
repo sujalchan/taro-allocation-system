@@ -7,6 +7,7 @@ import jakarta.validation.Validator;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -111,6 +112,97 @@ public class CustomerPageController {
             String phone,
             boolean active) {
 
+        model.addAttribute("name", name);
+        model.addAttribute("contactName", contactName);
+        model.addAttribute("phone", phone);
+        model.addAttribute("active", active);
+    }
+
+    @GetMapping("/customers/{id}/edit")
+    public String getEditCustomerPage(
+            @PathVariable Long id,
+            Model model) {
+
+        var customer = customerService.getCustomerById(id);
+
+        model.addAttribute("customerId", customer.id());
+        model.addAttribute("name", customer.name());
+        model.addAttribute("contactName", customer.contactName());
+        model.addAttribute("phone", customer.phone());
+        model.addAttribute("active", customer.active());
+
+        return "customer-edit-form";
+    }
+
+    @PostMapping("/customers/{id}/edit")
+    public String updateCustomer(
+            @PathVariable Long id,
+            @RequestParam String name,
+            @RequestParam(required = false) String contactName,
+            @RequestParam(required = false) String phone,
+            @RequestParam(defaultValue = "false") boolean active,
+            Model model) {
+
+        CustomerRequest request = new CustomerRequest(
+                name,
+                contactName,
+                phone,
+                active);
+
+        var violations = validator.validate(request);
+
+        if (!violations.isEmpty()) {
+
+            List<String> errors = violations.stream()
+                    .map(violation -> violation.getMessage())
+                    .toList();
+
+            addEditFormValues(
+                    model,
+                    id,
+                    name,
+                    contactName,
+                    phone,
+                    active);
+
+            model.addAttribute("errors", errors);
+
+            return "customer-edit-form";
+        }
+
+        try {
+
+            customerService.updateCustomer(id, request);
+
+        } catch (CustomerAlreadyExistsException exception) {
+
+            addEditFormValues(
+                    model,
+                    id,
+                    name,
+                    contactName,
+                    phone,
+                    active);
+
+            model.addAttribute(
+                    "errors",
+                    List.of(exception.getMessage()));
+
+            return "customer-edit-form";
+        }
+
+        return "redirect:/customers";
+    }
+
+    private void addEditFormValues(
+            Model model,
+            Long customerId,
+            String name,
+            String contactName,
+            String phone,
+            boolean active) {
+
+        model.addAttribute("customerId", customerId);
         model.addAttribute("name", name);
         model.addAttribute("contactName", contactName);
         model.addAttribute("phone", phone);
