@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Customers - API Client</title>
+</head>
+
+<body>
+
+    <h1>Customers</h1>
+
+    <p>
+        <a href="/customers-new-client.html">
+            Add Customer
+        </a>
+    </p>
+
+    <p id="status">
+        Loading customers...
+    </p>
+
+    <table id="customerTable" border="1" hidden>
+
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Business Name</th>
+                <th>Contact Name</th>
+                <th>Phone</th>
+                <th>Active</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+
+        <tbody id="customerTableBody">
+        </tbody>
+
+    </table>
+
+    <p>
+        <a href="/taro-types">
+            Taro Types
+        </a>
+    </p>
+
+    <p>
+        <a href="/customers">
+            Server-rendered customer page
+        </a>
+    </p>
+
+    <script>
+
+        async function loadCustomers() {
+
+            const status = document.getElementById("status");
+            const table = document.getElementById("customerTable");
+            const tableBody = document.getElementById("customerTableBody");
+
+            try {
+
+                const response = await fetch("/api/v1/customers");
+
+                if (!response.ok) {
+                    throw new Error(
+                        "Unable to load customers. HTTP " + response.status
+                    );
+                }
+
+                const customers = await response.json();
+
+                // clear any existing rows
+                tableBody.innerHTML = "";
+
+                if (customers.length === 0) {
+
+                    status.textContent = "No customers found.";
+                    table.hidden = true;
+
+                    return;
+                }
+
+                customers.forEach(customer => {
+
+                    const row = document.createElement("tr");
+
+                    row.innerHTML = `
+                        <td>${customer.id}</td>
+                        <td>${escapeHtml(customer.name)}</td>
+                        <td>${escapeHtml(customer.contactName ?? "")}</td>
+                        <td>${escapeHtml(customer.phone ?? "")}</td>
+                        <td>${customer.active ? "Yes" : "No"}</td>
+                        <td>
+                            <a href="/customers-edit-client.html?id=${customer.id}">
+                                Edit
+                            </a>
+                        </td>
+                    `;
+
+                    tableBody.appendChild(row);
+                });
+
+                status.textContent = "";
+                table.hidden = false;
+
+            } catch (error) {
+
+                table.hidden = true;
+                status.textContent = error.message;
+            }
+        }
+
+        function escapeHtml(value) {
+
+            const element = document.createElement("div");
+
+            element.textContent = value;
+
+            return element.innerHTML;
+        }
+
+        loadCustomers();
+
+    </script>
+
+</body>
+
+</html>
