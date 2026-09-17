@@ -7,50 +7,39 @@
 </head>
 
 <body>
-
-    <h1>Edit Taro Type</h1>
+    <h1>Edit Taro Type (JSON API)</h1>
 
     <div id="errorContainer" hidden>
-
         <strong>Unable to update taro type:</strong>
-
         <ul id="errorList">
         </ul>
-
     </div>
 
     <form id="taroTypeForm">
-
         <div>
             <label for="name">
                 Name
             </label>
-
             <input type="text" id="name" name="name" required>
         </div>
 
         <br>
-
         <div>
             <label for="description">
                 Description
             </label>
-
             <input type="text" id="description" name="description">
         </div>
 
         <br>
-
         <div>
             <label for="standardPrice">
                 Standard Price
             </label>
-
             <input type="number" id="standardPrice" name="standardPrice" step="0.01" required>
         </div>
 
         <br>
-
         <button type="submit">
             Update Taro Type
         </button>
@@ -58,127 +47,9 @@
         <a href="/taro-types-client.html">
             Cancel
         </a>
-
     </form>
 
-    <script>
-
-        const params = new URLSearchParams(window.location.search);
-        const taroTypeId = params.get("id");
-
-        const form = document.getElementById("taroTypeForm");
-
-        async function loadTaroType() {
-
-            if (!taroTypeId) {
-                showError("Taro type ID is missing.");
-                return;
-            }
-
-            try {
-
-                const response = await fetch(
-                    `/api/v1/taro-types/${taroTypeId}`
-                );
-
-                if (!response.ok) {
-
-                    const error = await response.json();
-
-                    showError(error.message);
-
-                    return;
-                }
-
-                const taroType = await response.json();
-
-                document.getElementById("name").value =
-                    taroType.name ?? "";
-
-                document.getElementById("description").value =
-                    taroType.description ?? "";
-
-                document.getElementById("standardPrice").value =
-                    taroType.standardPrice ?? "";
-
-            } catch (error) {
-
-                showError("Unable to communicate with the server.");
-            }
-        }
-
-        form.addEventListener("submit", async function (event) {
-
-            event.preventDefault();
-
-            clearErrors();
-
-            const taroType = {
-                name: document.getElementById("name").value,
-                description: document.getElementById("description").value,
-                standardPrice:
-                    document.getElementById("standardPrice").value
-            };
-
-            try {
-
-                const response = await fetch(
-                    `/api/v1/taro-types/${taroTypeId}`,
-                    {
-                        method: "PUT",
-                        headers: {
-                            "Content-Type": "application/json"
-                        },
-                        body: JSON.stringify(taroType)
-                    }
-                );
-
-                if (!response.ok) {
-
-                    const error = await response.json();
-
-                    showError(error.message);
-
-                    return;
-                }
-
-                window.location.href =
-                    "/taro-types-client.html";
-
-            } catch (error) {
-
-                showError("Unable to communicate with the server.");
-            }
-        });
-
-        function showError(message) {
-
-            const errorContainer =
-                document.getElementById("errorContainer");
-
-            const errorList =
-                document.getElementById("errorList");
-
-            const item = document.createElement("li");
-
-            item.textContent = message;
-
-            errorList.appendChild(item);
-
-            errorContainer.hidden = false;
-        }
-
-        function clearErrors() {
-
-            document.getElementById("errorList").innerHTML = "";
-
-            document.getElementById("errorContainer").hidden = true;
-        }
-
-        loadTaroType();
-
-    </script>
-
+    <script src="js/taro-type-edit-client.js"></script>
 </body>
 
 </html>
