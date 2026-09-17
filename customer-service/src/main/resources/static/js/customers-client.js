@@ -27,7 +27,6 @@ async function loadCustomers() {
         customers.forEach(customer => {
             const row = document.createElement("tr");
             row.innerHTML = `
-                <td>${customer.id}</td>
                 <td>${escapeHtml(customer.name)}</td>
                 <td>${escapeHtml(customer.contactName ?? "")}</td>
                 <td>${escapeHtml(customer.phone ?? "")}</td>

@@ -3,13 +3,23 @@
 
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="/css/style.css">
     <title>Edit Taro Type</title>
 </head>
 
-<body>
+<body class="page-form">
+
+    <nav class="app-nav" aria-label="Service navigation">
+        <a class="app-nav__brand" href="/customers">Taro Allocation System</a>
+        <div class="app-nav__links">
+            <a href="/customers" aria-current="page">Customer Service</a>
+            <a href="http://localhost:8082/allocations">Allocation Service</a>
+        </div>
+    </nav>
     <h1>Edit Taro Type (JSON API)</h1>
 
-    <div id="errorContainer" hidden>
+    <div id="errorContainer" class="error-message" role="alert" hidden>
         <strong>Unable to update taro type:</strong>
         <ul id="errorList">
         </ul>

@@ -3,15 +3,25 @@
 
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="/css/style.css">
     <title>Taro Types</title>
 </head>
 
-<body>
+<body class="page-list">
 
-    <h1>Taro Types</h1>
+    <nav class="app-nav" aria-label="Service navigation">
+        <a class="app-nav__brand" href="/customers">Taro Allocation System</a>
+        <div class="app-nav__links">
+            <a href="/customers" aria-current="page">Customer Service</a>
+            <a href="http://localhost:8082/allocations">Allocation Service</a>
+        </div>
+    </nav>
+
+    <h1>Taro Types (Server-rendered)</h1>
 
     <p>
-        <a href="/taro-types/new">
+        <a class="button-primary" href="/taro-types/new">
             Add Taro Type
         </a>
     </p>
@@ -20,6 +30,7 @@
         No taro types found.
     </p>
 
+    <div class="table-scroll" role="region" aria-label="Data table" tabindex="0">
     <table th:if="${!#lists.isEmpty(taroTypes)}" border="1">
 
         <thead>
@@ -63,6 +74,7 @@
         </tbody>
 
     </table>
+    </div>
 
     <p>
         <a href="/customers">
