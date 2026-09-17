@@ -22,6 +22,9 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+
 import nz.ac.aut.comp713.allocation_service.client.CustomerClient;
 import nz.ac.aut.comp713.allocation_service.client.CustomerResponse;
 import nz.ac.aut.comp713.allocation_service.client.TaroTypeResponse;
@@ -159,6 +162,28 @@ class WeeklyAllocationApiTest {
         }
 
         @Test
+        void createAllocationNormalizesWeekStartToMonday() throws Exception {
+
+                mockMvc.perform(post("/api/v1/allocations")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                                {
+                                                "customerId": 1,
+                                                "weekStart": "2026-09-16",
+                                                "allocationItems": [
+                                                {
+                                                "taroTypeId": 1,
+                                                "quantity": 100
+                                                }
+                                                ]
+                                                }
+                                                """))
+                                .andExpect(status().isCreated())
+                                .andExpect(jsonPath("$.weekStart")
+                                                .value("2026-09-14"));
+        }
+
+        @Test
         void sameCustomerCanHaveAllocationsForDifferentWeeks() throws Exception {
 
                 createAllocation(1L, "2026-09-14", 1L, 100);
@@ -182,6 +207,36 @@ class WeeklyAllocationApiTest {
                 mockMvc.perform(get("/api/v1/allocations"))
                                 .andExpect(status().isOk())
                                 .andExpect(jsonPath("$", hasSize(2)));
+        }
+
+        @Test
+        void sameCustomerCannotHaveTwoAllocationsInSameWeek() throws Exception {
+
+                createAllocation(
+                                1L,
+                                "2026-09-14",
+                                1L,
+                                100);
+
+                mockMvc.perform(post("/api/v1/allocations")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                                {
+                                                "customerId": 1,
+                                                "weekStart": "2026-09-16",
+                                                "allocationItems": [
+                                                {
+                                                "taroTypeId": 2,
+                                                "quantity": 50
+                                                }
+                                                ]
+                                                }
+                                                """))
+                                .andExpect(status().isConflict())
+                                .andExpect(jsonPath("$.code")
+                                                .value("WEEKLY_ALLOCATION_ALREADY_EXISTS"))
+                                .andExpect(jsonPath("$.message")
+                                                .value("Weekly allocation already exists for Island Foods for week starting 2026-09-14"));
         }
 
         @Test
@@ -232,7 +287,9 @@ class WeeklyAllocationApiTest {
                                                 """))
                                 .andExpect(status().isConflict())
                                 .andExpect(jsonPath("$.code")
-                                                .value("WEEKLY_ALLOCATION_ALREADY_EXISTS"));
+                                                .value("WEEKLY_ALLOCATION_ALREADY_EXISTS"))
+                                .andExpect(jsonPath("$.message")
+                                                .value("Weekly allocation already exists for Island Foods for week starting 2026-09-14"));
         }
 
         @Test
@@ -258,7 +315,9 @@ class WeeklyAllocationApiTest {
                                                 """))
                                 .andExpect(status().isBadRequest())
                                 .andExpect(jsonPath("$.code")
-                                                .value("DUPLICATE_TARO_TYPE"));
+                                                .value("DUPLICATE_TARO_TYPE"))
+                                .andExpect(jsonPath("$.message")
+                                                .value("Samoan Taro cannot appear more than once in an allocation"));
         }
 
         @Test
@@ -308,7 +367,10 @@ class WeeklyAllocationApiTest {
                                                 """))
                                 .andExpect(status().isNotFound())
                                 .andExpect(jsonPath("$.code")
-                                                .value("TARO_TYPE_NOT_FOUND"));
+                                                .value("TARO_TYPE_NOT_FOUND"))
+                                .andExpect(jsonPath("$.message")
+                                                .value("Taro type not found with id: 999"));
+                ;
         }
 
         @Test
@@ -581,6 +643,41 @@ class WeeklyAllocationApiTest {
         }
 
         @Test
+        void updateNormalizesWeekStartToMonday() throws Exception {
+
+                createAllocation(
+                                1L,
+                                "2026-09-14",
+                                1L,
+                                100);
+
+                Long id = weeklyAllocationRepository
+                                .findAll()
+                                .getFirst()
+                                .getId();
+
+                mockMvc.perform(put(
+                                "/api/v1/allocations/{id}",
+                                id)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                                {
+                                                "customerId": 1,
+                                                "weekStart": "2026-09-17",
+                                                "allocationItems": [
+                                                {
+                                                "taroTypeId": 1,
+                                                "quantity": 150
+                                                }
+                                                ]
+                                                }
+                                                """))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.weekStart")
+                                                .value("2026-09-14"));
+        }
+
+        @Test
         void updateMissingAllocationReturns404() throws Exception {
 
                 mockMvc.perform(put("/api/v1/allocations/999")
@@ -661,7 +758,10 @@ class WeeklyAllocationApiTest {
                                                 """))
                                 .andExpect(status().isBadRequest())
                                 .andExpect(jsonPath("$.code")
-                                                .value("DUPLICATE_TARO_TYPE"));
+                                                .value("DUPLICATE_TARO_TYPE"))
+                                .andExpect(jsonPath("$.message")
+                                                .value("Samoan Taro cannot appear more than once in an allocation"));
+                ;
         }
 
         @Test
@@ -836,6 +936,81 @@ class WeeklyAllocationApiTest {
                                 .andExpect(jsonPath("$.allocationItems[0].taroTypeId").value(1))
                                 .andExpect(jsonPath("$.allocationItems[0].quantity").value(100))
                                 .andExpect(jsonPath("$.allocationItems[0].pricePerKg").value(50.00));
+        }
+
+        @Test
+        void deleteExistingAllocationReturns204AndDeletesItems() throws Exception {
+
+                createAllocation(
+                                1L,
+                                "2026-09-14",
+                                1L,
+                                100);
+
+                Long id = weeklyAllocationRepository
+                                .findAll()
+                                .getFirst()
+                                .getId();
+
+                // make sure the allocation has child items before deleting
+                assertTrue(
+                                !allocationItemRepository
+                                                .findByWeeklyAllocationId(id)
+                                                .isEmpty());
+
+                mockMvc.perform(
+                                delete("/api/v1/allocations/{id}", id))
+                                .andExpect(status().isNoContent());
+
+                // parent allocation should be gone
+                assertTrue(
+                                weeklyAllocationRepository
+                                                .findById(id)
+                                                .isEmpty());
+
+                // all child allocation items should also be gone
+                assertTrue(
+                                allocationItemRepository
+                                                .findByWeeklyAllocationId(id)
+                                                .isEmpty());
+        }
+
+        @Test
+        void deleteMissingAllocationReturns404() throws Exception {
+
+                mockMvc.perform(
+                                delete("/api/v1/allocations/999"))
+                                .andExpect(status().isNotFound())
+                                .andExpect(jsonPath("$.code")
+                                                .value("WEEKLY_ALLOCATION_NOT_FOUND"))
+                                .andExpect(jsonPath("$.message")
+                                                .value(
+                                                                "Weekly allocation not found with id: 999"));
+        }
+
+        @Test
+        void fractionalQuantityReturns400() throws Exception {
+
+                mockMvc.perform(post("/api/v1/allocations")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                                {
+                                                "customerId": 1,
+                                                "weekStart": "2026-10-26",
+                                                "allocationItems": [
+                                                {
+                                                "taroTypeId": 1,
+                                                "quantity": 1.5
+                                                }
+                                                ]
+                                                }
+                                                """))
+                                .andExpect(status().isBadRequest())
+                                .andExpect(jsonPath("$.code")
+                                                .value("INVALID_QUANTITY"))
+                                .andExpect(jsonPath("$.message")
+                                                .value(
+                                                                "Quantity must be a positive whole number"));
         }
 
         // create an allocation used as setup for tests

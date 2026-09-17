@@ -6,11 +6,12 @@ public class WeeklyAllocationAlreadyExistsException extends RuntimeException {
 
     public WeeklyAllocationAlreadyExistsException(
             Long customerId,
+            String customerName,
             LocalDate weekStart) {
 
         super(
-                "Weekly allocation already exists for customer "
-                        + customerId
+                "Weekly allocation already exists for "
+                        + customerName
                         + " for week starting "
                         + weekStart);
     }

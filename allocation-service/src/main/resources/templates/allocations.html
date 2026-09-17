@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Weekly Allocations</title>
+</head>
+
+<body>
+    <h1>Weekly Allocations</h1>
+
+    <p>
+        <a href="/allocations/new">
+            Add Allocation
+        </a>
+    </p>
+
+    <div th:if="${errors != null && !errors.isEmpty()}">
+        <strong>Unable to load allocations:</strong>
+
+        <ul>
+            <li th:each="error : ${errors}" th:text="${error}">
+                Error message
+            </li>
+        </ul>
+    </div>
+
+    <p th:if="${#lists.isEmpty(allocations) && errors == null}">
+        No weekly allocations found.
+    </p>
+
+    <div th:each="allocation : ${allocations}">
+        <hr>
+        <h2>
+            Allocation
+            <span th:text="${allocation.id}">
+                1
+            </span>
+        </h2>
+
+        <p>
+            <strong>Customer:</strong>
+            <span th:text="${allocation.customerName}">
+                Island Foods
+            </span>
+        </p>
+
+        <p>
+            <strong>Week Start:</strong>
+            <span th:text="${allocation.weekStart}">
+                2026-09-14
+            </span>
+        </p>
+
+        <table border="1">
+            <thead>
+                <tr>
+                    <th>Taro Type</th>
+                    <th>Quantity</th>
+                    <th>Price per kg</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                <tr th:each="item : ${allocation.allocationItems}">
+                    <td th:text="${item.taroTypeName}">
+                        Samoan Taro
+                    </td>
+
+                    <td th:text="${item.quantity}">
+                        100
+                    </td>
+
+                    <td th:text="${'$' + #numbers.formatDecimal(item.pricePerKg, 1, 2)}">
+                        $50.00
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <p>
+            <a th:href="@{/allocations/{id}/edit(id=${allocation.id})}">
+                Edit Allocation
+            </a>
+
+        <form th:action="@{/allocations/{id}/delete(id=${allocation.id})}" method="post" style="display: inline;">
+            <button type="submit" onclick="return confirm('Delete this weekly allocation?');">
+                Delete Allocation
+            </button>
+        </form>
+        </p>
+    </div>
+
+</body>
+
+</html>

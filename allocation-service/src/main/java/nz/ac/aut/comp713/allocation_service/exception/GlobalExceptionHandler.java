@@ -131,6 +131,22 @@ public class GlobalExceptionHandler {
                                 .body(error);
         }
 
+        // handle invalid allocation quantity
+        @ExceptionHandler(InvalidQuantityException.class)
+        public ResponseEntity<ApiError> handleInvalidQuantity(
+                        InvalidQuantityException exception,
+                        HttpServletRequest request) {
+
+                ApiError error = new ApiError(
+                                "INVALID_QUANTITY",
+                                exception.getMessage(),
+                                request.getRequestURI());
+
+                return ResponseEntity
+                                .status(HttpStatus.BAD_REQUEST)
+                                .body(error);
+        }
+
         // handle any unexpected errors
         @ExceptionHandler(Exception.class)
         public ResponseEntity<ApiError> handleUnexpectedException(

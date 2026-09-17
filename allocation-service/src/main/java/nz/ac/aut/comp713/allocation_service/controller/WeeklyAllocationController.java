@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
@@ -31,9 +32,7 @@ public class WeeklyAllocationController {
 
         private final WeeklyAllocationService weeklyAllocationService;
 
-        public WeeklyAllocationController(
-                        WeeklyAllocationService weeklyAllocationService) {
-
+        public WeeklyAllocationController(WeeklyAllocationService weeklyAllocationService) {
                 this.weeklyAllocationService = weeklyAllocationService;
         }
 
@@ -45,9 +44,7 @@ public class WeeklyAllocationController {
         })
         @GetMapping
         public ResponseEntity<List<WeeklyAllocationResponse>> getAllWeeklyAllocations() {
-
-                return ResponseEntity.ok(
-                                weeklyAllocationService.getAllWeeklyAllocations());
+                return ResponseEntity.ok(weeklyAllocationService.getAllWeeklyAllocations());
         }
 
         // get a weekly allocation by id
@@ -58,11 +55,8 @@ public class WeeklyAllocationController {
                         @ApiResponse(responseCode = "503", description = "Customer service is unavailable", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiError.class)))
         })
         @GetMapping("/{id}")
-        public ResponseEntity<WeeklyAllocationResponse> getWeeklyAllocationById(
-                        @PathVariable Long id) {
-
-                return ResponseEntity.ok(
-                                weeklyAllocationService.getWeeklyAllocationById(id));
+        public ResponseEntity<WeeklyAllocationResponse> getWeeklyAllocationById(@PathVariable Long id) {
+                return ResponseEntity.ok(weeklyAllocationService.getWeeklyAllocationById(id));
         }
 
         // create a new weekly allocation
@@ -79,10 +73,7 @@ public class WeeklyAllocationController {
                         @Valid @RequestBody WeeklyAllocationRequest request) {
 
                 WeeklyAllocationResponse response = weeklyAllocationService.createWeeklyAllocation(request);
-
-                URI location = URI.create(
-                                "/api/v1/allocations/" + response.id());
-
+                URI location = URI.create("/api/v1/allocations/" + response.id());
                 return ResponseEntity
                                 .created(location)
                                 .body(response);
@@ -106,5 +97,12 @@ public class WeeklyAllocationController {
                                 weeklyAllocationService.updateWeeklyAllocation(
                                                 id,
                                                 request));
+        }
+
+        // delete a weekly allocation
+        @DeleteMapping("/{id}")
+        public ResponseEntity<Void> deleteWeeklyAllocation(@PathVariable Long id) {
+                weeklyAllocationService.deleteWeeklyAllocation(id);
+                return ResponseEntity.noContent().build();
         }
 }

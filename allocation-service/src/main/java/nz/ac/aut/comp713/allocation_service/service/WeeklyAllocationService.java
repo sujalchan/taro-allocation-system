@@ -1,5 +1,11 @@
 package nz.ac.aut.comp713.allocation_service.service;
 
+import java.math.BigDecimal;
+
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.time.temporal.TemporalAdjusters;
+
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -19,6 +25,7 @@ import nz.ac.aut.comp713.allocation_service.dto.AllocationItemResponse;
 import nz.ac.aut.comp713.allocation_service.dto.WeeklyAllocationRequest;
 import nz.ac.aut.comp713.allocation_service.dto.WeeklyAllocationResponse;
 import nz.ac.aut.comp713.allocation_service.exception.DuplicateTaroTypeException;
+import nz.ac.aut.comp713.allocation_service.exception.InvalidQuantityException;
 import nz.ac.aut.comp713.allocation_service.exception.WeeklyAllocationAlreadyExistsException;
 import nz.ac.aut.comp713.allocation_service.exception.WeeklyAllocationNotFoundException;
 import nz.ac.aut.comp713.allocation_service.model.AllocationItem;
@@ -65,37 +72,45 @@ public class WeeklyAllocationService {
             WeeklyAllocationRequest request) {
 
         // confirm the customer exists in customer-service
-        customerClient.getCustomer(request.customerId());
+        CustomerResponse customer = customerClient.getCustomer(request.customerId());
+
+        // normalize the supplied date to the monday of its week
+        LocalDate normalizedWeekStart = normalizeWeekStart(request.weekStart());
 
         // confirm every taro type exists and prevent duplicate taro types
         Set<Long> taroTypeIds = new HashSet<>();
         Map<Long, TaroTypeResponse> taroTypes = new HashMap<>();
 
         for (AllocationItemRequest item : request.allocationItems()) {
+            // make sure quantity is a positive whole number
+            validateQuantity(item.quantity());
 
             if (!taroTypeIds.add(item.taroTypeId())) {
-                throw new DuplicateTaroTypeException(item.taroTypeId());
+                TaroTypeResponse duplicateTaroType = taroTypes.get(item.taroTypeId());
+                throw new DuplicateTaroTypeException(
+                        item.taroTypeId(),
+                        duplicateTaroType.name());
             }
 
             TaroTypeResponse taroType = customerClient.getTaroType(item.taroTypeId());
-
             taroTypes.put(item.taroTypeId(), taroType);
         }
 
         // give a clear conflict response before attempting the insert
         if (weeklyAllocationRepository.existsByCustomerIdAndWeekStart(
                 request.customerId(),
-                request.weekStart())) {
+                normalizedWeekStart)) {
 
             throw new WeeklyAllocationAlreadyExistsException(
                     request.customerId(),
-                    request.weekStart());
+                    customer.name(),
+                    normalizedWeekStart);
         }
 
         WeeklyAllocation weeklyAllocation = new WeeklyAllocation();
 
         weeklyAllocation.setCustomerId(request.customerId());
-        weeklyAllocation.setWeekStart(request.weekStart());
+        weeklyAllocation.setWeekStart(normalizedWeekStart);
 
         WeeklyAllocation savedAllocation;
 
@@ -103,12 +118,12 @@ public class WeeklyAllocationService {
             savedAllocation = weeklyAllocationRepository.saveAndFlush(weeklyAllocation);
 
         } catch (DataIntegrityViolationException | JpaSystemException exception) {
-
             // the database constraint is the final protection against
             // concurrent duplicate allocation requests
             throw new WeeklyAllocationAlreadyExistsException(
                     request.customerId(),
-                    request.weekStart());
+                    customer.name(),
+                    normalizedWeekStart);
         }
 
         // create each item and associate it with the saved weekly allocation
@@ -121,7 +136,6 @@ public class WeeklyAllocationService {
                 .toList();
 
         allocationItemRepository.saveAllAndFlush(allocationItems);
-
         return toResponse(savedAllocation);
     }
 
@@ -135,18 +149,22 @@ public class WeeklyAllocationService {
         WeeklyAllocation weeklyAllocation = weeklyAllocationRepository.findById(id)
                 .orElseThrow(() -> new WeeklyAllocationNotFoundException(id));
 
+        // normalize the supplied date to the monday of its week
+        LocalDate normalizedWeekStart = normalizeWeekStart(request.weekStart());
+
         // confirm the customer exists in customer-service
-        customerClient.getCustomer(request.customerId());
+        CustomerResponse customer = customerClient.getCustomer(request.customerId());
 
         // make sure another allocation does not already use this customer and week
         if (weeklyAllocationRepository.existsByCustomerIdAndWeekStartAndIdNot(
                 request.customerId(),
-                request.weekStart(),
+                normalizedWeekStart,
                 id)) {
 
             throw new WeeklyAllocationAlreadyExistsException(
                     request.customerId(),
-                    request.weekStart());
+                    customer.name(),
+                    normalizedWeekStart);
         }
 
         // confirm every taro type exists and prevent duplicate taro types
@@ -154,19 +172,23 @@ public class WeeklyAllocationService {
         Map<Long, TaroTypeResponse> taroTypes = new HashMap<>();
 
         for (AllocationItemRequest item : request.allocationItems()) {
+            // make sure quantity is a positive whole number
+            validateQuantity(item.quantity());
 
             if (!taroTypeIds.add(item.taroTypeId())) {
-                throw new DuplicateTaroTypeException(item.taroTypeId());
+                TaroTypeResponse duplicateTaroType = taroTypes.get(item.taroTypeId());
+                throw new DuplicateTaroTypeException(
+                        item.taroTypeId(),
+                        duplicateTaroType.name());
             }
 
             TaroTypeResponse taroType = customerClient.getTaroType(item.taroTypeId());
-
             taroTypes.put(item.taroTypeId(), taroType);
         }
 
         // update the weekly allocation
         weeklyAllocation.setCustomerId(request.customerId());
-        weeklyAllocation.setWeekStart(request.weekStart());
+        weeklyAllocation.setWeekStart(normalizedWeekStart);
 
         WeeklyAllocation savedAllocation;
 
@@ -174,12 +196,12 @@ public class WeeklyAllocationService {
             savedAllocation = weeklyAllocationRepository.saveAndFlush(weeklyAllocation);
 
         } catch (DataIntegrityViolationException | JpaSystemException exception) {
-
             // the database constraint is the final protection against
             // duplicate customer and week combinations
             throw new WeeklyAllocationAlreadyExistsException(
                     request.customerId(),
-                    request.weekStart());
+                    customer.name(),
+                    normalizedWeekStart);
         }
 
         // remove the old allocation items
@@ -196,8 +218,23 @@ public class WeeklyAllocationService {
                 .toList();
 
         allocationItemRepository.saveAllAndFlush(allocationItems);
-
         return toResponse(savedAllocation);
+    }
+
+    // delete a weekly allocation
+    @Transactional
+    public void deleteWeeklyAllocation(Long id) {
+
+        WeeklyAllocation weeklyAllocation = weeklyAllocationRepository.findById(id)
+                .orElseThrow(
+                        () -> new WeeklyAllocationNotFoundException(id));
+
+        // delete child allocation items first
+        allocationItemRepository.deleteByWeeklyAllocationId(id);
+        allocationItemRepository.flush();
+
+        // delete the weekly allocation
+        weeklyAllocationRepository.delete(weeklyAllocation);
     }
 
     // create an allocation item entity from its request dto
@@ -210,7 +247,7 @@ public class WeeklyAllocationService {
 
         allocationItem.setWeeklyAllocation(weeklyAllocation);
         allocationItem.setTaroTypeId(request.taroTypeId());
-        allocationItem.setQuantity(request.quantity());
+        allocationItem.setQuantity(validateQuantity(request.quantity()));
 
         if (request.pricePerKg() != null) {
             allocationItem.setPricePerKg(request.pricePerKg());
@@ -254,4 +291,29 @@ public class WeeklyAllocationService {
                 allocationItem.getQuantity(),
                 allocationItem.getPricePerKg());
     }
+
+    // normalize any date to the monday of its week
+    private LocalDate normalizeWeekStart(LocalDate date) {
+        return date.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+    }
+
+    // validate quantity and convert it to an integer
+    private Integer validateQuantity(BigDecimal quantity) {
+
+        if (quantity == null) {
+            return null;
+        }
+
+        try {
+            int value = quantity.intValueExact();
+            if (value <= 0) {
+                throw new InvalidQuantityException();
+            }
+            return value;
+
+        } catch (ArithmeticException exception) {
+            throw new InvalidQuantityException();
+        }
+    }
+
 }

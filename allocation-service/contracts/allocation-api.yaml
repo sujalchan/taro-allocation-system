@@ -114,11 +114,18 @@ paths:
                     message: At least one allocation item is required
                     path: /api/v1/allocations
 
+                invalidQuantity:
+                  summary: Invalid quantity
+                  value:
+                    code: INVALID_QUANTITY
+                    message: Quantity must be a positive whole number
+                    path: /api/v1/allocations
+
                 duplicateTaroType:
                   summary: Duplicate taro type
                   value:
                     code: DUPLICATE_TARO_TYPE
-                    message: Taro type 1 cannot appear more than once in an allocation
+                    message: Samoan Taro cannot appear more than once in an allocation
                     path: /api/v1/allocations
 
         "404":
@@ -150,7 +157,7 @@ paths:
                 $ref: "#/components/schemas/ApiError"
               example:
                 code: WEEKLY_ALLOCATION_ALREADY_EXISTS
-                message: Weekly allocation already exists for customer 1 for week starting 2026-09-14
+                message: Weekly allocation already exists for Island Foods for week starting 2026-09-14
                 path: /api/v1/allocations
 
         "503":
@@ -305,14 +312,21 @@ paths:
                   summary: Validation error
                   value:
                     code: VALIDATION_ERROR
-                    message: Quantity must be greater than zero
+                    message: Invalid allocation request
+                    path: /api/v1/allocations/1
+
+                invalidQuantity:
+                  summary: Invalid quantity
+                  value:
+                    code: INVALID_QUANTITY
+                    message: Quantity must be a positive whole number
                     path: /api/v1/allocations/1
 
                 duplicateTaroType:
                   summary: Duplicate taro type
                   value:
                     code: DUPLICATE_TARO_TYPE
-                    message: Taro type 1 cannot appear more than once in an allocation
+                    message: Samoan Taro cannot appear more than once in an allocation
                     path: /api/v1/allocations/1
 
         "404":
@@ -351,7 +365,7 @@ paths:
                 $ref: "#/components/schemas/ApiError"
               example:
                 code: WEEKLY_ALLOCATION_ALREADY_EXISTS
-                message: Weekly allocation already exists for customer 1 for week starting 2026-09-21
+                message: Weekly allocation already exists for Island Foods for week starting 2026-09-21
                 path: /api/v1/allocations/1
 
         "503":
@@ -364,6 +378,45 @@ paths:
                 code: CUSTOMER_SERVICE_UNAVAILABLE
                 message: Customer service is currently unavailable
                 path: /api/v1/allocations/1
+
+        "500":
+          description: Unexpected server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                code: INTERNAL_SERVER_ERROR
+                message: An unexpected error occurred
+                path: /api/v1/allocations/1
+
+    delete:
+      summary: Delete a weekly allocation
+      operationId: deleteWeeklyAllocation
+
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Weekly allocation ID
+          schema:
+            type: integer
+            format: int64
+
+      responses:
+        "204":
+          description: Weekly allocation deleted successfully
+
+        "404":
+          description: Weekly allocation was not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                code: WEEKLY_ALLOCATION_NOT_FOUND
+                message: "Weekly allocation not found with id: 999"
+                path: /api/v1/allocations/999
 
         "500":
           description: Unexpected server error
@@ -394,6 +447,10 @@ components:
           type: string
           format: date
           example: "2026-09-14"
+          description: >
+            A date identifying the allocation week.
+            The service normalizes the supplied date to the Monday
+            of that week before storing it.
 
         allocationItems:
           type: array
@@ -417,6 +474,7 @@ components:
           type: integer
           minimum: 1
           example: 100
+          description: Quantity must be a positive whole number.
 
         pricePerKg:
           type: number

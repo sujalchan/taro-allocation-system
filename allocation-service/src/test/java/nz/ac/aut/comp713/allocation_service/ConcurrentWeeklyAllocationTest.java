@@ -33,137 +33,137 @@ import nz.ac.aut.comp713.allocation_service.service.WeeklyAllocationService;
 @SpringBootTest
 class ConcurrentWeeklyAllocationTest {
 
-    @Autowired
-    private WeeklyAllocationService weeklyAllocationService;
+        @Autowired
+        private WeeklyAllocationService weeklyAllocationService;
 
-    @Autowired
-    private WeeklyAllocationRepository weeklyAllocationRepository;
+        @Autowired
+        private WeeklyAllocationRepository weeklyAllocationRepository;
 
-    @Autowired
-    private AllocationItemRepository allocationItemRepository;
+        @Autowired
+        private AllocationItemRepository allocationItemRepository;
 
-    @MockitoBean
-    private CustomerClient customerClient;
+        @MockitoBean
+        private CustomerClient customerClient;
 
-    @BeforeEach
-    void setUp() {
+        @BeforeEach
+        void setUp() {
 
-        // clear allocation data before each test
-        allocationItemRepository.deleteAll();
-        weeklyAllocationRepository.deleteAll();
+                // clear allocation data before each test
+                allocationItemRepository.deleteAll();
+                weeklyAllocationRepository.deleteAll();
 
-        // mock customer-service responses
-        when(customerClient.getCustomer(1L))
-                .thenReturn(new CustomerResponse(
-                        1L,
-                        "Island Foods",
-                        "John",
-                        "0211234567",
-                        true));
+                // mock customer-service responses
+                when(customerClient.getCustomer(1L))
+                                .thenReturn(new CustomerResponse(
+                                                1L,
+                                                "Island Foods",
+                                                "John",
+                                                "0211234567",
+                                                true));
 
-        when(customerClient.getTaroType(1L))
-                .thenReturn(new TaroTypeResponse(
-                        1L,
-                        "Samoan Taro",
-                        "Large premium taro",
-                        new BigDecimal("50.00")));
-    }
+                when(customerClient.getTaroType(1L))
+                                .thenReturn(new TaroTypeResponse(
+                                                1L,
+                                                "Samoan Taro",
+                                                "Large premium taro",
+                                                new BigDecimal("50.00")));
+        }
 
-    @Test
-    void onlyOneConcurrentRequestCanCreateSameWeeklyAllocation()
-            throws Exception {
+        @Test
+        void onlyOneConcurrentRequestCanCreateSameWeeklyAllocation()
+                        throws Exception {
 
-        WeeklyAllocationRequest request = new WeeklyAllocationRequest(
-                1L,
-                LocalDate.of(2026, 9, 14),
-                List.of(
-                        new AllocationItemRequest(
+                WeeklyAllocationRequest request = new WeeklyAllocationRequest(
                                 1L,
-                                100,
-                                null)));
+                                LocalDate.of(2026, 9, 14),
+                                List.of(
+                                                new AllocationItemRequest(
+                                                                1L,
+                                                                new BigDecimal(100),
+                                                                null)));
 
-        CountDownLatch readyLatch = new CountDownLatch(2);
-        CountDownLatch startLatch = new CountDownLatch(1);
+                CountDownLatch readyLatch = new CountDownLatch(2);
+                CountDownLatch startLatch = new CountDownLatch(1);
 
-        ExecutorService executor = Executors.newFixedThreadPool(2);
+                ExecutorService executor = Executors.newFixedThreadPool(2);
 
-        try {
+                try {
 
-            Future<String> firstResult = executor.submit(() -> attemptCreate(
-                    request,
-                    readyLatch,
-                    startLatch));
+                        Future<String> firstResult = executor.submit(() -> attemptCreate(
+                                        request,
+                                        readyLatch,
+                                        startLatch));
 
-            Future<String> secondResult = executor.submit(() -> attemptCreate(
-                    request,
-                    readyLatch,
-                    startLatch));
+                        Future<String> secondResult = executor.submit(() -> attemptCreate(
+                                        request,
+                                        readyLatch,
+                                        startLatch));
 
-            // wait until both threads are ready
-            readyLatch.await();
+                        // wait until both threads are ready
+                        readyLatch.await();
 
-            // release both threads at almost the same time
-            startLatch.countDown();
+                        // release both threads at almost the same time
+                        startLatch.countDown();
 
-            String resultOne = firstResult.get();
-            String resultTwo = secondResult.get();
+                        String resultOne = firstResult.get();
+                        String resultTwo = secondResult.get();
 
-            long successCount = List.of(resultOne, resultTwo)
-                    .stream()
-                    .filter("SUCCESS"::equals)
-                    .count();
+                        long successCount = List.of(resultOne, resultTwo)
+                                        .stream()
+                                        .filter("SUCCESS"::equals)
+                                        .count();
 
-            long rejectedCount = List.of(resultOne, resultTwo)
-                    .stream()
-                    .filter("REJECTED"::equals)
-                    .count();
+                        long rejectedCount = List.of(resultOne, resultTwo)
+                                        .stream()
+                                        .filter("REJECTED"::equals)
+                                        .count();
 
-            // exactly one request should succeed
-            assertEquals(1, successCount);
+                        // exactly one request should succeed
+                        assertEquals(1, successCount);
 
-            // exactly one concurrent request should be rejected
-            assertEquals(1, rejectedCount);
+                        // exactly one concurrent request should be rejected
+                        assertEquals(1, rejectedCount);
 
-            // only one allocation should exist in the database
-            assertEquals(1, weeklyAllocationRepository.count());
+                        // only one allocation should exist in the database
+                        assertEquals(1, weeklyAllocationRepository.count());
 
-            assertTrue(
-                    weeklyAllocationRepository
-                            .existsByCustomerIdAndWeekStart(
-                                    1L,
-                                    LocalDate.of(2026, 9, 14)));
+                        assertTrue(
+                                        weeklyAllocationRepository
+                                                        .existsByCustomerIdAndWeekStart(
+                                                                        1L,
+                                                                        LocalDate.of(2026, 9, 14)));
 
-        } finally {
-            executor.shutdownNow();
+                } finally {
+                        executor.shutdownNow();
+                }
         }
-    }
 
-    private String attemptCreate(
-            WeeklyAllocationRequest request,
-            CountDownLatch readyLatch,
-            CountDownLatch startLatch)
-            throws InterruptedException {
+        private String attemptCreate(
+                        WeeklyAllocationRequest request,
+                        CountDownLatch readyLatch,
+                        CountDownLatch startLatch)
+                        throws InterruptedException {
 
-        // tell the test that this thread is ready
-        readyLatch.countDown();
+                // tell the test that this thread is ready
+                readyLatch.countDown();
 
-        // wait until both threads are ready
-        startLatch.await();
+                // wait until both threads are ready
+                startLatch.await();
 
-        try {
+                try {
 
-            weeklyAllocationService.createWeeklyAllocation(request);
+                        weeklyAllocationService.createWeeklyAllocation(request);
 
-            return "SUCCESS";
+                        return "SUCCESS";
 
-        } catch (WeeklyAllocationAlreadyExistsException exception) {
+                } catch (WeeklyAllocationAlreadyExistsException exception) {
 
-            return "REJECTED";
+                        return "REJECTED";
 
-        } catch (CannotAcquireLockException exception) {
+                } catch (CannotAcquireLockException exception) {
 
-            // sqlite allows only one writer at a time
-            return "REJECTED";
+                        // sqlite allows only one writer at a time
+                        return "REJECTED";
+                }
         }
-    }
 }
