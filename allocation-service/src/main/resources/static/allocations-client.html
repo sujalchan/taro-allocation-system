@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Weekly Allocations</title>
+</head>
+
+<body>
+
+    <h1>Weekly Allocations (JSON API)</h1>
+
+    <p>
+        <a href="/allocations">
+            Server-rendered version
+        </a>
+    </p>
+
+    <p>
+        <a href="/allocation-new-client.html">
+            Add Allocation
+        </a>
+    </p>
+
+
+
+    <div id="errorContainer" hidden>
+        <strong>Unable to load allocations:</strong>
+
+        <ul id="errorList"></ul>
+    </div>
+
+    <p id="status">
+        Loading weekly allocations...
+    </p>
+
+    <div id="allocationsContainer"></div>
+
+    <script src="/js/allocations-client.js"></script>
+
+</body>
+
+</html>

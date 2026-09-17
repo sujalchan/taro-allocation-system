@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Edit Weekly Allocation</title>
+</head>
+
+<body>
+
+    <h1>Edit Weekly Allocation</h1>
+
+    <div id="errorContainer" hidden>
+        <strong>Unable to update allocation:</strong>
+        <ul id="errorList"></ul>
+    </div>
+
+    <form id="allocationForm">
+
+        <div>
+            <label for="customerId">Customer</label>
+
+            <select id="customerId" required>
+                <option value="">Select Customer</option>
+            </select>
+        </div>
+
+        <br>
+
+        <div>
+            <label for="weekStart">Week</label>
+
+            <input type="date" id="weekStart" required>
+
+            <small>
+                Any date in the week may be selected.
+                It will be stored as the Monday of that week.
+            </small>
+        </div>
+
+        <hr>
+
+        <h2>Allocation Items</h2>
+
+        <div id="allocationItems"></div>
+
+        <button type="button" id="addItemButton">
+            Add Another Taro Type
+        </button>
+
+        <br>
+        <br>
+
+        <button type="submit">
+            Save Changes
+        </button>
+
+        <a href="/allocations-client.html">
+            Cancel
+        </a>
+
+    </form>
+
+    <script src="/js/allocation-edit-client.js"></script>
+
+</body>
+
+</html>
