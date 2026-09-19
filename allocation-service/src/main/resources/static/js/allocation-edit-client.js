@@ -1,3 +1,4 @@
+// loads and updates the weekly allocation selected by the url id
 const allocationForm = document.getElementById("allocationForm");
 const customerSelect = document.getElementById("customerId");
 const weekStartInput = document.getElementById("weekStart");
@@ -11,17 +12,22 @@ const allocationId = params.get("id");
 
 let taroTypes = [];
 
+// loads the selected allocation and form reference data
 loadPage();
 
+// adds another allocation item row
 addItemButton.addEventListener("click", () => addAllocationItem());
+// submits changes to the selected allocation
 allocationForm.addEventListener("submit", updateAllocation);
 
+// removes allocation item rows when requested
 allocationItemsContainer.addEventListener("click", event => {
     if (event.target.classList.contains("remove-item-button")) {
         removeAllocationItem(event.target);
     }
 });
 
+// retrieves the allocation, customers, and taro types for the edit form
 async function loadPage() {
     clearErrors();
 
@@ -68,6 +74,7 @@ async function loadPage() {
     }
 }
 
+// fills the customer selector and preserves the selected customer
 function populateCustomers(customers, selectedCustomerId) {
     customerSelect.innerHTML = '<option value="">Select Customer</option>';
 
@@ -84,6 +91,7 @@ function populateCustomers(customers, selectedCustomerId) {
     });
 }
 
+// fills a taro type selector and preserves its selected type
 function populateTaroTypeSelect(select, selectedTaroTypeId = null) {
     select.innerHTML = '<option value="">Select Taro Type</option>';
 
@@ -100,6 +108,7 @@ function populateTaroTypeSelect(select, selectedTaroTypeId = null) {
     });
 }
 
+// creates an allocation item row, optionally using existing item values
 function addAllocationItem(existingItem = null) {
     const row = document.createElement("div");
     row.className = "allocation-item-row";
@@ -150,6 +159,7 @@ function addAllocationItem(existingItem = null) {
     allocationItemsContainer.appendChild(row);
 }
 
+// removes an allocation item while retaining one required row
 function removeAllocationItem(button) {
     const rows = allocationItemsContainer.querySelectorAll(".allocation-item-row");
 
@@ -161,6 +171,7 @@ function removeAllocationItem(button) {
     button.closest(".allocation-item-row").remove();
 }
 
+// sends the edited allocation to the service
 async function updateAllocation(event) {
     event.preventDefault();
     clearErrors();
@@ -212,6 +223,7 @@ async function updateAllocation(event) {
     }
 }
 
+// reads a structured error response when available
 async function readError(response) {
     try {
         return await response.json();
@@ -222,6 +234,7 @@ async function readError(response) {
     }
 }
 
+// displays an error message in the page error list
 function showError(message) {
     errorContainer.hidden = false;
 
@@ -231,6 +244,7 @@ function showError(message) {
     errorList.appendChild(item);
 }
 
+// removes errors shown by a previous operation
 function clearErrors() {
     errorContainer.hidden = true;
     errorList.innerHTML = "";

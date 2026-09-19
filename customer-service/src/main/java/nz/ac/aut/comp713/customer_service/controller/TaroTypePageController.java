@@ -16,35 +16,33 @@ import nz.ac.aut.comp713.customer_service.dto.TaroTypeRequest;
 import nz.ac.aut.comp713.customer_service.exception.TaroTypeAlreadyExistsException;
 import nz.ac.aut.comp713.customer_service.service.TaroTypeService;
 
+// MVC controller for the server rendered taro type pages
 @Controller
 public class TaroTypePageController {
 
     private final TaroTypeService taroTypeService;
     private final Validator validator;
 
-    public TaroTypePageController(
-            TaroTypeService taroTypeService,
-            Validator validator) {
-
+    // pass the taro type service and validator used by the HTML forms
+    public TaroTypePageController(TaroTypeService taroTypeService, Validator validator) {
         this.taroTypeService = taroTypeService;
         this.validator = validator;
     }
 
-    // show all taro types
+    // render all taro types, or filter them when a search query is supplied
     @GetMapping("/taro-types")
     public String getTaroTypesPage(@RequestParam(required = false) String search, Model model) {
 
-        model.addAttribute(
-                "taroTypes",
-                taroTypeService.getAllTaroTypes(search));
+        model.addAttribute("taroTypes", taroTypeService.getAllTaroTypes(search));
+
+        // keep the current search value visible in the search box
         model.addAttribute("search", search);
         return "taro-types";
     }
 
-    // show create taro type form
+    // show the server rendered form for creating a taro type
     @GetMapping("/taro-types/new")
     public String getCreateTaroTypePage() {
-
         return "taro-type-form";
     }
 
@@ -56,12 +54,11 @@ public class TaroTypePageController {
             @RequestParam(required = false) String standardPrice,
             Model model) {
 
+        // convert the submitted price string to BigDecimal before validation
         BigDecimal parsedPrice;
 
         try {
-
             parsedPrice = parsePrice(standardPrice);
-
         } catch (NumberFormatException exception) {
 
             addCreateFormValues(
@@ -70,20 +67,20 @@ public class TaroTypePageController {
                     description,
                     standardPrice);
 
-            model.addAttribute(
-                    "errors",
-                    List.of("Standard price must be a valid number"));
-
+            model.addAttribute("errors", List.of("Standard price must be a valid number"));
             return "taro-type-form";
         }
 
+        // build the same request DTO used by the REST API
         TaroTypeRequest request = new TaroTypeRequest(
                 name,
                 description,
                 parsedPrice);
 
+        // run the same validation rules used by the REST API
         var violations = validator.validate(request);
 
+        // redisplay the form with validation errors and the submitted values
         if (!violations.isEmpty()) {
 
             List<String> errors = violations.stream()
@@ -97,14 +94,12 @@ public class TaroTypePageController {
                     standardPrice);
 
             model.addAttribute("errors", errors);
-
             return "taro-type-form";
         }
 
+        // show duplicate-name errors without losing the entered form data
         try {
-
             taroTypeService.createTaroType(request);
-
         } catch (TaroTypeAlreadyExistsException exception) {
 
             addCreateFormValues(
@@ -123,7 +118,7 @@ public class TaroTypePageController {
         return "redirect:/taro-types";
     }
 
-    // show edit taro type form
+    // load the existing taro type and populate the edit form
     @GetMapping("/taro-types/{id}/edit")
     public String getEditTaroTypePage(
             @PathVariable Long id,
@@ -139,7 +134,7 @@ public class TaroTypePageController {
         return "taro-type-edit-form";
     }
 
-    // update a taro type
+    // validate and submit changes to an existing taro type
     @PostMapping("/taro-types/{id}/edit")
     public String updateTaroType(
             @PathVariable Long id,
@@ -150,10 +145,9 @@ public class TaroTypePageController {
 
         BigDecimal parsedPrice;
 
+        // parse the submitted price before creating the request DTO
         try {
-
             parsedPrice = parsePrice(standardPrice);
-
         } catch (NumberFormatException exception) {
 
             addEditFormValues(
@@ -178,7 +172,6 @@ public class TaroTypePageController {
         var violations = validator.validate(request);
 
         if (!violations.isEmpty()) {
-
             List<String> errors = violations.stream()
                     .map(violation -> violation.getMessage())
                     .toList();
@@ -195,10 +188,9 @@ public class TaroTypePageController {
             return "taro-type-edit-form";
         }
 
+        // show duplicate name errors while preserving the attempted changes
         try {
-
             taroTypeService.updateTaroType(id, request);
-
         } catch (TaroTypeAlreadyExistsException exception) {
 
             addEditFormValues(
@@ -218,17 +210,15 @@ public class TaroTypePageController {
         return "redirect:/taro-types";
     }
 
-    // convert the form price into a decimal
+    // convert an optional form price into BigDecimal for the service layer
     private BigDecimal parsePrice(String standardPrice) {
-
         if (standardPrice == null || standardPrice.isBlank()) {
             return null;
         }
-
         return new BigDecimal(standardPrice);
     }
 
-    // preserve values after a failed create
+    // restore submitted values when the create form must be displayed again
     private void addCreateFormValues(
             Model model,
             String name,
@@ -240,7 +230,7 @@ public class TaroTypePageController {
         model.addAttribute("standardPrice", standardPrice);
     }
 
-    // preserve values after a failed update
+    // restore submitted values when the edit form must be displayed again
     private void addEditFormValues(
             Model model,
             Long taroTypeId,

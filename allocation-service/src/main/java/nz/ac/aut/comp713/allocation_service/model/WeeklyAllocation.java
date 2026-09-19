@@ -10,6 +10,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 
+// JPA entity representing one customer's allocation for a specific week
 @Entity
 @Table(name = "weekly_allocation", uniqueConstraints = {
         @UniqueConstraint(name = "unique_weekly_allocation", columnNames = { "customer_id", "week_start" })
@@ -20,9 +21,11 @@ public class WeeklyAllocation {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    // stores only the customer ID because customers are owned by customer-service
     @Column(name = "customer_id", nullable = false)
     private Long customerId;
 
+    // normalized to the Monday of the allocation week by the service layer
     @Column(name = "week_start", nullable = false)
     private LocalDate weekStart;
 

@@ -1,6 +1,6 @@
 # Taro Allocation System
 
-A distributed Spring Boot application for managing customers, taro types, and weekly taro allocations. It was developed for **COMP713 – Distributed Systems, Assessment 2 (Option A)**.
+A distributed Spring Boot application for managing customers, taro types, and weekly taro allocations.
 
 ## Architecture
 
@@ -140,4 +140,4 @@ Manual integration commands for the two running services are documented in [allo
 
 Completed: both REST APIs; Customer Service server- and client-rendered interfaces; Allocation Service server- and client-rendered list/create/edit/delete interfaces; service-to-service HTTP communication; validation, structured errors, OpenAPI contracts, frontend end-to-end testing, and automated/manual testing.
 
-Remaining major work: consistent CSS.
+This project was developed for a **COMP713 – Distributed Systems, Assessment 2 (Option A)** assignment.

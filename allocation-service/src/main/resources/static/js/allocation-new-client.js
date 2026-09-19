@@ -1,3 +1,4 @@
+// creates weekly allocations using customer service reference data
 const allocationForm = document.getElementById("allocationForm");
 const customerSelect = document.getElementById("customerId");
 const weekStartInput = document.getElementById("weekStart");
@@ -8,17 +9,22 @@ const errorList = document.getElementById("errorList");
 
 let taroTypes = [];
 
+// loads customers and taro types needed by the form
 loadReferenceData();
 
+// adds another allocation item row
 addItemButton.addEventListener("click", addAllocationItem);
+// submits the allocation form
 allocationForm.addEventListener("submit", createAllocation);
 
+// removes allocation item rows when requested
 allocationItemsContainer.addEventListener("click", event => {
     if (event.target.classList.contains("remove-item-button")) {
         removeAllocationItem(event.target);
     }
 });
 
+// retrieves and populates customer and taro type options
 async function loadReferenceData() {
     clearErrors();
 
@@ -43,6 +49,7 @@ async function loadReferenceData() {
     }
 }
 
+// fills the customer selector with available customers
 function populateCustomers(customers) {
     customerSelect.innerHTML = '<option value="">Select Customer</option>';
 
@@ -54,12 +61,14 @@ function populateCustomers(customers) {
     });
 }
 
+// fills every taro type selector currently on the form
 function populateAllTaroTypeSelects() {
     document.querySelectorAll(".taro-type-select").forEach(select => {
         populateTaroTypeSelect(select);
     });
 }
 
+// fills one taro type selector with available types
 function populateTaroTypeSelect(select) {
     select.innerHTML = '<option value="">Select Taro Type</option>';
 
@@ -71,6 +80,7 @@ function populateTaroTypeSelect(select) {
     });
 }
 
+// clones and resets an allocation item row
 function addAllocationItem() {
     const firstRow = allocationItemsContainer.querySelector(".allocation-item-row");
     const newRow = firstRow.cloneNode(true);
@@ -86,6 +96,7 @@ function addAllocationItem() {
     allocationItemsContainer.appendChild(newRow);
 }
 
+// removes an allocation item while retaining one required row
 function removeAllocationItem(button) {
     const rows = allocationItemsContainer.querySelectorAll(".allocation-item-row");
 
@@ -97,6 +108,7 @@ function removeAllocationItem(button) {
     button.closest(".allocation-item-row").remove();
 }
 
+// sends the completed allocation to the service
 async function createAllocation(event) {
     event.preventDefault();
     clearErrors();
@@ -148,6 +160,7 @@ async function createAllocation(event) {
     }
 }
 
+// reads a structured error response when available
 async function readError(response) {
     try {
         return await response.json();
@@ -158,6 +171,7 @@ async function readError(response) {
     }
 }
 
+// displays an error message in the page error list
 function showError(message) {
     errorContainer.hidden = false;
 
@@ -167,6 +181,7 @@ function showError(message) {
     errorList.appendChild(item);
 }
 
+// removes errors shown by a previous operation
 function clearErrors() {
     errorContainer.hidden = true;
     errorList.innerHTML = "";

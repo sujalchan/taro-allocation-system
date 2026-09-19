@@ -13,6 +13,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 
+// JPA entity representing one taro item within a weekly allocation
 @Entity
 @Table(name = "allocation_item", uniqueConstraints = {
         @UniqueConstraint(name = "unique_taro_type_per_allocation", columnNames = { "weekly_allocation_id",
@@ -24,16 +25,20 @@ public class AllocationItem {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    // many allocation items can belong to the same weekly allocation
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "weekly_allocation_id", nullable = false)
     private WeeklyAllocation weeklyAllocation;
 
+    // stores only the taro type ID because taro types are owned by customer-service
     @Column(name = "taro_type_id", nullable = false)
     private Long taroTypeId;
 
     @Column(nullable = false)
     private Integer quantity;
 
+    // price used for this allocation, allowing the price to vary between customers
+    // and weeks
     @Column(name = "price_per_kg", nullable = false, precision = 10, scale = 2)
     private BigDecimal pricePerKg;
 

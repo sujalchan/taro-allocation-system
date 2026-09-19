@@ -1,3 +1,4 @@
+// manages customer search results and table rendering
 const statusElement = document.getElementById("status");
 const table = document.getElementById("customerTable");
 const tableBody = document.getElementById("customerTableBody");
@@ -5,6 +6,7 @@ const searchForm = document.getElementById("searchForm");
 const searchInput = document.getElementById("search");
 const clearSearchButton = document.getElementById("clearSearch");
 
+// loads customers, optionally filtered by the search term
 async function loadCustomers(search = "") {
     statusElement.textContent = "Loading customers...";
     table.hidden = true;
@@ -61,20 +63,24 @@ async function loadCustomers(search = "") {
     }
 }
 
+// loads results for the submitted search term
 searchForm.addEventListener("submit", event => {
     event.preventDefault();
     loadCustomers(searchInput.value);
 });
 
+// clears the search term and reloads all customers
 clearSearchButton.addEventListener("click", () => {
     searchInput.value = "";
     loadCustomers();
 });
 
+// escapes text before rendering it in the table
 function escapeHtml(value) {
     const element = document.createElement("div");
     element.textContent = value;
     return element.innerHTML;
 }
 
+// loads the initial customer list
 loadCustomers();

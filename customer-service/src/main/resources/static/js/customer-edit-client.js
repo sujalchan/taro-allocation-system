@@ -1,8 +1,10 @@
+// loads and updates the customer selected by the url id
 const params = new URLSearchParams(window.location.search);
 const customerId = params.get("id");
 
 const form = document.getElementById("customerForm");
 
+// loads the selected customer's values into the form
 async function loadCustomer() {
     if (!customerId) {
         showError("Customer ID is missing.");
@@ -39,6 +41,7 @@ async function loadCustomer() {
     }
 }
 
+// saves the edited customer details
 form.addEventListener("submit", async function (event) {
     event.preventDefault();
     clearErrors();
@@ -76,6 +79,7 @@ form.addEventListener("submit", async function (event) {
     }
 });
 
+// displays a validation or communication error
 function showError(message) {
     const errorContainer =
         document.getElementById("errorContainer");
@@ -90,9 +94,11 @@ function showError(message) {
     errorContainer.hidden = false;
 }
 
+// removes errors shown by a previous operation
 function clearErrors() {
     document.getElementById("errorList").innerHTML = "";
     document.getElementById("errorContainer").hidden = true;
 }
 
+// loads the selected customer when the page opens
 loadCustomer();

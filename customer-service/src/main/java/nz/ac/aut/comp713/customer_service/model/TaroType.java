@@ -9,22 +9,27 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
+// JPA entity representing a taro type stored in the taro_type table
 @Entity
 @Table(name = "taro_type")
 public class TaroType {
 
+    // database generated primary key
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    // taro type name shown to users
     @Column(nullable = false)
     private String name;
 
+    // normalized name used to enforce case insensitive uniqueness
     @Column(name = "normalized_name", nullable = false, unique = true)
     private String normalizedName;
 
     private String description;
 
+    // default price used when an allocation does not provide a custom price
     @Column(name = "standard_price", nullable = false)
     private BigDecimal standardPrice;
 

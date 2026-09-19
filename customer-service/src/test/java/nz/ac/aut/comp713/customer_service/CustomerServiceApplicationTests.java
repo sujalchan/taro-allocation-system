@@ -7,6 +7,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 class CustomerServiceApplicationTests {
 
 	@Test
+	// verifies that the customer service application context loads
 	void contextLoads() {
 	}
 

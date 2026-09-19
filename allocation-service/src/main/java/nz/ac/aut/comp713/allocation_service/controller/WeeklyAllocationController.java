@@ -26,83 +26,91 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 
 import nz.ac.aut.comp713.allocation_service.dto.ApiError;
 
+// REST controller for weekly allocation API requests
 @RestController
 @RequestMapping("/api/v1/allocations")
 public class WeeklyAllocationController {
 
-        private final WeeklyAllocationService weeklyAllocationService;
+	private final WeeklyAllocationService weeklyAllocationService;
 
-        public WeeklyAllocationController(WeeklyAllocationService weeklyAllocationService) {
-                this.weeklyAllocationService = weeklyAllocationService;
-        }
+	// inject the service containing weekly allocation business logic
+	public WeeklyAllocationController(WeeklyAllocationService weeklyAllocationService) {
+		this.weeklyAllocationService = weeklyAllocationService;
+	}
 
-        // get all weekly allocations
-        @Operation(summary = "Retrieve all weekly allocations")
-        @ApiResponses({
-                        @ApiResponse(responseCode = "200", description = "Weekly allocations retrieved successfully"),
-                        @ApiResponse(responseCode = "503", description = "Customer service is unavailable", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiError.class)))
-        })
-        @GetMapping
-        public ResponseEntity<List<WeeklyAllocationResponse>> getAllWeeklyAllocations() {
-                return ResponseEntity.ok(weeklyAllocationService.getAllWeeklyAllocations());
-        }
+	@Operation(summary = "Retrieve all weekly allocations")
+	@ApiResponses({
+			@ApiResponse(responseCode = "200", description = "Weekly allocations retrieved successfully"),
+			@ApiResponse(responseCode = "503", description = "Customer service is unavailable", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiError.class)))
+	})
+	// return all weekly allocations, including customer and taro type details
+	@GetMapping
+	public ResponseEntity<List<WeeklyAllocationResponse>> getAllWeeklyAllocations() {
+		return ResponseEntity.ok(weeklyAllocationService.getAllWeeklyAllocations());
+	}
 
-        // get a weekly allocation by id
-        @Operation(summary = "Retrieve a weekly allocation by ID")
-        @ApiResponses({
-                        @ApiResponse(responseCode = "200", description = "Weekly allocation retrieved successfully"),
-                        @ApiResponse(responseCode = "404", description = "Weekly allocation not found", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiError.class))),
-                        @ApiResponse(responseCode = "503", description = "Customer service is unavailable", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiError.class)))
-        })
-        @GetMapping("/{id}")
-        public ResponseEntity<WeeklyAllocationResponse> getWeeklyAllocationById(@PathVariable Long id) {
-                return ResponseEntity.ok(weeklyAllocationService.getWeeklyAllocationById(id));
-        }
+	@Operation(summary = "Retrieve a weekly allocation by ID")
+	@ApiResponses({
+			@ApiResponse(responseCode = "200", description = "Weekly allocation retrieved successfully"),
+			@ApiResponse(responseCode = "404", description = "Weekly allocation not found", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiError.class))),
+			@ApiResponse(responseCode = "503", description = "Customer service is unavailable", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiError.class)))
+	})
+	// retrieve one weekly allocation using the ID from the request path
+	@GetMapping("/{id}")
+	public ResponseEntity<WeeklyAllocationResponse> getWeeklyAllocationById(@PathVariable Long id) {
+		return ResponseEntity.ok(weeklyAllocationService.getWeeklyAllocationById(id));
+	}
 
-        // create a new weekly allocation
-        @Operation(summary = "Create a weekly allocation")
-        @ApiResponses({
-                        @ApiResponse(responseCode = "201", description = "Weekly allocation created successfully"),
-                        @ApiResponse(responseCode = "400", description = "Invalid allocation data or duplicate taro type", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiError.class))),
-                        @ApiResponse(responseCode = "404", description = "Customer or taro type not found", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiError.class))),
-                        @ApiResponse(responseCode = "409", description = "Weekly allocation already exists for the customer and week", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiError.class))),
-                        @ApiResponse(responseCode = "503", description = "Customer service is unavailable", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiError.class)))
-        })
-        @PostMapping
-        public ResponseEntity<WeeklyAllocationResponse> createWeeklyAllocation(
-                        @Valid @RequestBody WeeklyAllocationRequest request) {
+	@Operation(summary = "Create a weekly allocation")
+	@ApiResponses({
+			@ApiResponse(responseCode = "201", description = "Weekly allocation created successfully"),
+			@ApiResponse(responseCode = "400", description = "Invalid allocation data or duplicate taro type", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiError.class))),
+			@ApiResponse(responseCode = "404", description = "Customer or taro type not found", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiError.class))),
+			@ApiResponse(responseCode = "409", description = "Weekly allocation already exists for the customer and week", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiError.class))),
+			@ApiResponse(responseCode = "503", description = "Customer service is unavailable", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiError.class)))
+	})
+	// validate the request body before creating a new weekly allocation
+	@PostMapping
+	public ResponseEntity<WeeklyAllocationResponse> createWeeklyAllocation(
+			@Valid @RequestBody WeeklyAllocationRequest request) {
 
-                WeeklyAllocationResponse response = weeklyAllocationService.createWeeklyAllocation(request);
-                URI location = URI.create("/api/v1/allocations/" + response.id());
-                return ResponseEntity
-                                .created(location)
-                                .body(response);
-        }
+		WeeklyAllocationResponse response = weeklyAllocationService.createWeeklyAllocation(request);
 
-        // update an existing weekly allocation
-        @Operation(summary = "Update an existing weekly allocation")
-        @ApiResponses({
-                        @ApiResponse(responseCode = "200", description = "Weekly allocation updated successfully"),
-                        @ApiResponse(responseCode = "400", description = "Invalid allocation data or duplicate taro type", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiError.class))),
-                        @ApiResponse(responseCode = "404", description = "Allocation, customer, or taro type not found", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiError.class))),
-                        @ApiResponse(responseCode = "409", description = "Another weekly allocation already exists for the customer and week", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiError.class))),
-                        @ApiResponse(responseCode = "503", description = "Customer service is unavailable", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiError.class)))
-        })
-        @PutMapping("/{id}")
-        public ResponseEntity<WeeklyAllocationResponse> updateWeeklyAllocation(
-                        @PathVariable Long id,
-                        @Valid @RequestBody WeeklyAllocationRequest request) {
+		// build the URI of the newly created allocation for the Location header
+		URI location = URI.create("/api/v1/allocations/" + response.id());
 
-                return ResponseEntity.ok(
-                                weeklyAllocationService.updateWeeklyAllocation(
-                                                id,
-                                                request));
-        }
+		// return 201 Created with the new resource location and response body
+		return ResponseEntity
+				.created(location)
+				.body(response);
+	}
 
-        // delete a weekly allocation
-        @DeleteMapping("/{id}")
-        public ResponseEntity<Void> deleteWeeklyAllocation(@PathVariable Long id) {
-                weeklyAllocationService.deleteWeeklyAllocation(id);
-                return ResponseEntity.noContent().build();
-        }
+	@Operation(summary = "Update an existing weekly allocation")
+	@ApiResponses({
+			@ApiResponse(responseCode = "200", description = "Weekly allocation updated successfully"),
+			@ApiResponse(responseCode = "400", description = "Invalid allocation data or duplicate taro type", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiError.class))),
+			@ApiResponse(responseCode = "404", description = "Allocation, customer, or taro type not found", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiError.class))),
+			@ApiResponse(responseCode = "409", description = "Another weekly allocation already exists for the customer and week", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiError.class))),
+			@ApiResponse(responseCode = "503", description = "Customer service is unavailable", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiError.class)))
+	})
+	// validate and update the weekly allocation identified by the path ID
+	@PutMapping("/{id}")
+	public ResponseEntity<WeeklyAllocationResponse> updateWeeklyAllocation(
+			@PathVariable Long id,
+			@Valid @RequestBody WeeklyAllocationRequest request) {
+
+		return ResponseEntity.ok(
+				weeklyAllocationService.updateWeeklyAllocation(
+						id,
+						request));
+	}
+
+	// delete the weekly allocation identified by the path ID
+	@DeleteMapping("/{id}")
+	public ResponseEntity<Void> deleteWeeklyAllocation(@PathVariable Long id) {
+		weeklyAllocationService.deleteWeeklyAllocation(id);
+
+		// return 204 No Content because deletion has no response body
+		return ResponseEntity.noContent().build();
+	}
 }

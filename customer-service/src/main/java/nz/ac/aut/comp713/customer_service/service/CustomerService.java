@@ -13,16 +13,18 @@ import nz.ac.aut.comp713.customer_service.exception.CustomerNotFoundException;
 import nz.ac.aut.comp713.customer_service.model.Customer;
 import nz.ac.aut.comp713.customer_service.repository.CustomerRepository;
 
+// service layer containing customer business logic
 @Service
 public class CustomerService {
 
     private final CustomerRepository customerRepository;
 
+    // pass the respository used for customer persistence
     public CustomerService(CustomerRepository customerRepository) {
         this.customerRepository = customerRepository;
     }
 
-    // Get all customers
+    // return all customers, optionally filtered by name, contact name, or phone
     public List<CustomerResponse> getAllCustomers(String search) {
         return customerRepository.findAll()
                 .stream()
@@ -31,7 +33,7 @@ public class CustomerService {
                 .toList();
     }
 
-    // Get a customer by ID
+    // retrieve a customer or fail if the requested ID does not exist
     public CustomerResponse getCustomerById(Long id) {
         Customer customer = customerRepository.findById(id)
                 .orElseThrow(() -> new CustomerNotFoundException(id));
@@ -39,7 +41,7 @@ public class CustomerService {
         return toResponse(customer);
     }
 
-    // Create a new customer
+    // create a customer within a transaction so the database write is atomic
     @Transactional
     public CustomerResponse createCustomer(CustomerRequest request) {
 
@@ -52,21 +54,22 @@ public class CustomerService {
         customer.setContactName(request.contactName());
         customer.setPhone(request.phone());
 
-        // Set the active status if provided in the request
+        // set the active status if provided in the request
         if (request.active() != null) {
             customer.setActive(request.active());
         }
 
-        // Save the customer entity to the database
+        // flush immediately so database uniqueness violations are detected here
         try {
             Customer savedCustomer = customerRepository.saveAndFlush(customer);
             return toResponse(savedCustomer);
         } catch (JpaSystemException e) {
+            // convert the database constraint failure into a domain-specific conflict
             throw new CustomerAlreadyExistsException(name);
         }
     }
 
-    // Update an existing customer
+    // update an existing customer within a transaction
     @Transactional
     public CustomerResponse updateCustomer(Long id, CustomerRequest request) {
         Customer customer = customerRepository.findById(id)
@@ -80,12 +83,12 @@ public class CustomerService {
         customer.setContactName(request.contactName());
         customer.setPhone(request.phone());
 
-        // Set the active status if provided in the request
+        // set the active status if provided in the request
         if (request.active() != null) {
             customer.setActive(request.active());
         }
 
-        // Save the updated customer entity to the database
+        // flush immediately so duplicate-name conflicts are raised before returning
         try {
             Customer updatedCustomer = customerRepository.saveAndFlush(customer);
             return toResponse(updatedCustomer);
@@ -94,7 +97,7 @@ public class CustomerService {
         }
     }
 
-    // Helper method to convert Customer entity to CustomerResponse DTO
+    // map the persistence entity to the response DTO exposed by the API
     private CustomerResponse toResponse(Customer customer) {
         return new CustomerResponse(
                 customer.getId(),
@@ -104,8 +107,9 @@ public class CustomerService {
                 customer.isActive());
     }
 
-    // Helper method for search query
+    // match the search query against customer name, contact name, or phone
     private boolean matchesSearch(Customer customer, String search) {
+        // no search value means every customer should be returned
         if (search == null || search.isBlank()) {
             return true;
         }

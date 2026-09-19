@@ -7,26 +7,34 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
+// JPA entity representing a customer stored in the customers table
 @Entity
 @Table(name = "customers")
 public class Customer {
 
+    // database generated primary key
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    // customer business name shown to users
     @Column(nullable = false)
     private String name;
+
+    // normalized name used to enforce case insensitive uniqueness
     @Column(nullable = false, unique = true)
     private String normalizedName;
 
     private String contactName;
     private String phone;
+
+    // customers are active by default
     private boolean active = true;
 
     public Customer() {
     }
 
+    // override constructor for creating a new active customer
     public Customer(String name, String contactName, String phone) {
         this.name = name;
         this.contactName = contactName;

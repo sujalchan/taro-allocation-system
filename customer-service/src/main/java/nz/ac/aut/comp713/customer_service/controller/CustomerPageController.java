@@ -15,36 +15,33 @@ import nz.ac.aut.comp713.customer_service.dto.CustomerRequest;
 import nz.ac.aut.comp713.customer_service.exception.CustomerAlreadyExistsException;
 import nz.ac.aut.comp713.customer_service.service.CustomerService;
 
+// MVC controller for the server rendered customer pages
 @Controller
 public class CustomerPageController {
 
     private final CustomerService customerService;
     private final Validator validator;
 
-    public CustomerPageController(
-            CustomerService customerService,
-            Validator validator) {
-
+    // pass the customer service with Jakarta validator used by the page forms
+    public CustomerPageController(CustomerService customerService, Validator validator) {
         this.customerService = customerService;
         this.validator = validator;
     }
 
+    // render the customer list, optionally filtered by the search query
     @GetMapping("/customers")
-    public String getCustomersPage(
-            @RequestParam(required = false) String search,
-            Model model) {
-
+    public String getCustomersPage(@RequestParam(required = false) String search, Model model) {
         model.addAttribute("customers", customerService.getAllCustomers(search));
-        model.addAttribute("search", search);
 
+        // keep the current search value visible in the search box
+        model.addAttribute("search", search);
         return "customers";
     }
 
+    // show the create form with new customers active by default
     @GetMapping("/customers/new")
     public String getCreateCustomerPage(Model model) {
-
         model.addAttribute("active", true);
-
         return "customer-form";
     }
 
@@ -65,8 +62,8 @@ public class CustomerPageController {
         // run the same validation rules used by the API
         var violations = validator.validate(request);
 
+        // return validation messages and preserve the submitted form values
         if (!violations.isEmpty()) {
-
             List<String> errors = violations.stream()
                     .map(violation -> violation.getMessage())
                     .toList();
@@ -79,14 +76,12 @@ public class CustomerPageController {
                     active);
 
             model.addAttribute("errors", errors);
-
             return "customer-form";
         }
 
+        // show the duplicate customer error without losing the entered form data
         try {
-
             customerService.createCustomer(request);
-
         } catch (CustomerAlreadyExistsException exception) {
 
             addFormValues(
@@ -96,16 +91,14 @@ public class CustomerPageController {
                     phone,
                     active);
 
-            model.addAttribute(
-                    "errors",
-                    List.of(exception.getMessage()));
-
+            model.addAttribute("errors", List.of(exception.getMessage()));
             return "customer-form";
         }
 
         return "redirect:/customers";
     }
 
+    // restore submitted values when the create form has to be displayed again
     private void addFormValues(
             Model model,
             String name,
@@ -119,6 +112,7 @@ public class CustomerPageController {
         model.addAttribute("active", active);
     }
 
+    // load the existing customer and populate the edit form
     @GetMapping("/customers/{id}/edit")
     public String getEditCustomerPage(
             @PathVariable Long id,
@@ -135,6 +129,7 @@ public class CustomerPageController {
         return "customer-edit-form";
     }
 
+    // validate and submit changes to an existing customer
     @PostMapping("/customers/{id}/edit")
     public String updateCustomer(
             @PathVariable Long id,
@@ -152,6 +147,8 @@ public class CustomerPageController {
 
         var violations = validator.validate(request);
 
+        // redisplay the edit form with validation errors and the user's submitted
+        // values
         if (!violations.isEmpty()) {
 
             List<String> errors = violations.stream()
@@ -171,10 +168,9 @@ public class CustomerPageController {
             return "customer-edit-form";
         }
 
+        // show duplicate-name errors while preserving the attempted changes
         try {
-
             customerService.updateCustomer(id, request);
-
         } catch (CustomerAlreadyExistsException exception) {
 
             addEditFormValues(
@@ -195,6 +191,7 @@ public class CustomerPageController {
         return "redirect:/customers";
     }
 
+    // restore submitted values when the edit form must be displayed again
     private void addEditFormValues(
             Model model,
             Long customerId,

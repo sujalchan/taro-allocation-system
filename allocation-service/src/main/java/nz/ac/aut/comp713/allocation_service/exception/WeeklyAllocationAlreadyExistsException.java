@@ -2,6 +2,7 @@ package nz.ac.aut.comp713.allocation_service.exception;
 
 import java.time.LocalDate;
 
+// thrown when a customer already has an allocation for the requested week
 public class WeeklyAllocationAlreadyExistsException extends RuntimeException {
 
     public WeeklyAllocationAlreadyExistsException(

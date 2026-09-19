@@ -1,8 +1,10 @@
+// loads and updates the taro type selected by the url id
 const params = new URLSearchParams(window.location.search);
 const taroTypeId = params.get("id");
 
 const form = document.getElementById("taroTypeForm");
 
+// loads the selected taro type's values into the form
 async function loadTaroType() {
 
     if (!taroTypeId) {
@@ -37,6 +39,7 @@ async function loadTaroType() {
     }
 }
 
+// saves the edited taro type details
 form.addEventListener("submit", async function (event) {
 
     event.preventDefault();
@@ -77,6 +80,7 @@ form.addEventListener("submit", async function (event) {
     }
 });
 
+// displays a validation or communication error
 function showError(message) {
     const errorContainer =
         document.getElementById("errorContainer");
@@ -91,10 +95,12 @@ function showError(message) {
     errorContainer.hidden = false;
 }
 
+// removes errors shown by a previous operation
 function clearErrors() {
     document.getElementById("errorList").innerHTML = "";
 
     document.getElementById("errorContainer").hidden = true;
 }
 
+// loads the selected taro type when the page opens
 loadTaroType();

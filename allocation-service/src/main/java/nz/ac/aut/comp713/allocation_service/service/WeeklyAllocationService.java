@@ -33,6 +33,7 @@ import nz.ac.aut.comp713.allocation_service.model.WeeklyAllocation;
 import nz.ac.aut.comp713.allocation_service.repository.AllocationItemRepository;
 import nz.ac.aut.comp713.allocation_service.repository.WeeklyAllocationRepository;
 
+// service layer containing weekly allocation business logic
 @Service
 public class WeeklyAllocationService {
 

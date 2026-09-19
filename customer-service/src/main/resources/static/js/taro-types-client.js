@@ -1,3 +1,4 @@
+// manages taro type search results and table rendering
 const status = document.getElementById("status");
 const table = document.getElementById("taroTypeTable");
 const tableBody = document.getElementById("taroTypeTableBody");
@@ -5,6 +6,7 @@ const searchForm = document.getElementById("searchForm");
 const searchInput = document.getElementById("search");
 const clearSearchButton = document.getElementById("clearSearch");
 
+// loads taro types, optionally filtered by the search term
 async function loadTaroTypes(search = "") {
     status.textContent = "Loading taro types...";
     table.hidden = true;
@@ -62,20 +64,24 @@ async function loadTaroTypes(search = "") {
     }
 }
 
+// loads results for the submitted search term
 searchForm.addEventListener("submit", event => {
     event.preventDefault();
     loadTaroTypes(searchInput.value);
 });
 
+// clears the search term and reloads all taro types
 clearSearchButton.addEventListener("click", () => {
     searchInput.value = "";
     loadTaroTypes();
 });
 
+// escapes text before rendering it in the table
 function escapeHtml(value) {
     const element = document.createElement("div");
     element.textContent = value;
     return element.innerHTML;
 }
 
+// loads the initial taro type list
 loadTaroTypes();

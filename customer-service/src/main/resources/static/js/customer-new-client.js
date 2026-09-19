@@ -1,5 +1,7 @@
+// submits a new customer and displays validation errors
 const form = document.getElementById("customerForm");
 
+// creates a customer from the form values
 form.addEventListener("submit", async function (event) {
     event.preventDefault();
     clearErrors();
@@ -33,6 +35,7 @@ form.addEventListener("submit", async function (event) {
     }
 });
 
+// displays a validation or communication error
 function showError(message) {
     const errorContainer =
         document.getElementById("errorContainer");
@@ -47,6 +50,7 @@ function showError(message) {
     errorContainer.hidden = false;
 }
 
+// removes errors shown by a previous submission
 function clearErrors() {
     document.getElementById("errorList").innerHTML = "";
     document.getElementById("errorContainer").hidden = true;

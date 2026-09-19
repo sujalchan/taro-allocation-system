@@ -1,10 +1,13 @@
+// lists, formats, and deletes weekly allocations
 const statusElement = document.getElementById("status");
 const allocationsContainer = document.getElementById("allocationsContainer");
 const errorContainer = document.getElementById("errorContainer");
 const errorList = document.getElementById("errorList");
 
+// loads the initial allocation list
 loadAllocations();
 
+// retrieves allocations and renders their summary cards
 async function loadAllocations() {
     clearErrors();
     statusElement.textContent = "Loading weekly allocations...";
@@ -38,6 +41,7 @@ async function loadAllocations() {
     }
 }
 
+// builds the visible details and actions for one allocation
 function createAllocationElement(allocation) {
     const wrapper = document.createElement("div");
 
@@ -108,6 +112,7 @@ function createAllocationElement(allocation) {
     return wrapper;
 }
 
+// confirms and deletes the selected allocation
 async function deleteAllocation(allocationId, customerName) {
     const confirmed = confirm(`Delete the weekly allocation for ${customerName}?`);
 
@@ -135,6 +140,7 @@ async function deleteAllocation(allocationId, customerName) {
     }
 }
 
+// reads a structured error response when available
 async function readError(response) {
     try {
         return await response.json();
@@ -145,6 +151,7 @@ async function readError(response) {
     }
 }
 
+// displays an error message in the page error list
 function showError(message) {
     errorContainer.hidden = false;
 
@@ -154,15 +161,18 @@ function showError(message) {
     errorList.appendChild(item);
 }
 
+// removes errors shown by a previous operation
 function clearErrors() {
     errorContainer.hidden = true;
     errorList.innerHTML = "";
 }
 
+// formats a price with two decimal places
 function formatPrice(price) {
     return Number(price).toFixed(2);
 }
 
+// escapes text before rendering it in generated html
 function escapeHtml(value) {
     return String(value)
         .replaceAll("&", "&amp;")
