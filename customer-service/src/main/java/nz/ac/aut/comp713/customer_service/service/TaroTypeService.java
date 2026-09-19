@@ -23,9 +23,10 @@ public class TaroTypeService {
     }
 
     // get all taro types
-    public List<TaroTypeResponse> getAllTaroTypes() {
+    public List<TaroTypeResponse> getAllTaroTypes(String search) {
         return taroTypeRepository.findAll()
                 .stream()
+                .filter(taroType -> matchesSearch(taroType, search))
                 .map(this::toResponse)
                 .toList();
     }
@@ -93,5 +94,15 @@ public class TaroTypeService {
                 taroType.getName(),
                 taroType.getDescription(),
                 taroType.getStandardPrice());
+    }
+
+    // Helper method for search query
+    private boolean matchesSearch(TaroType taroType, String search) {
+        if (search == null || search.isBlank()) {
+            return true;
+        }
+
+        String query = search.trim().toLowerCase();
+        return taroType.getName().toLowerCase().contains(query);
     }
 }

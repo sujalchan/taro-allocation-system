@@ -30,11 +30,12 @@ public class CustomerPageController {
     }
 
     @GetMapping("/customers")
-    public String getCustomersPage(Model model) {
+    public String getCustomersPage(
+            @RequestParam(required = false) String search,
+            Model model) {
 
-        model.addAttribute(
-                "customers",
-                customerService.getAllCustomers());
+        model.addAttribute("customers", customerService.getAllCustomers(search));
+        model.addAttribute("search", search);
 
         return "customers";
     }

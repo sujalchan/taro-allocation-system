@@ -1,11 +1,22 @@
-async function loadCustomers() {
+const statusElement = document.getElementById("status");
+const table = document.getElementById("customerTable");
+const tableBody = document.getElementById("customerTableBody");
+const searchForm = document.getElementById("searchForm");
+const searchInput = document.getElementById("search");
+const clearSearchButton = document.getElementById("clearSearch");
 
-    const status = document.getElementById("status");
-    const table = document.getElementById("customerTable");
-    const tableBody = document.getElementById("customerTableBody");
+async function loadCustomers(search = "") {
+    statusElement.textContent = "Loading customers...";
+    table.hidden = true;
 
     try {
-        const response = await fetch("/api/v1/customers");
+        let url = "/api/v1/customers";
+
+        if (search.trim() !== "") {
+            url += `?search=${encodeURIComponent(search.trim())}`;
+        }
+
+        const response = await fetch(url);
 
         if (!response.ok) {
             throw new Error(
@@ -19,13 +30,14 @@ async function loadCustomers() {
         tableBody.innerHTML = "";
 
         if (customers.length === 0) {
-            status.textContent = "No customers found.";
+            statusElement.textContent = "No customers found.";
             table.hidden = true;
             return;
         }
 
         customers.forEach(customer => {
             const row = document.createElement("tr");
+
             row.innerHTML = `
                 <td>${escapeHtml(customer.name)}</td>
                 <td>${escapeHtml(customer.contactName ?? "")}</td>
@@ -41,14 +53,23 @@ async function loadCustomers() {
             tableBody.appendChild(row);
         });
 
-        status.textContent = "";
+        statusElement.textContent = "";
         table.hidden = false;
-
     } catch (error) {
         table.hidden = true;
-        status.textContent = error.message;
+        statusElement.textContent = error.message;
     }
 }
+
+searchForm.addEventListener("submit", event => {
+    event.preventDefault();
+    loadCustomers(searchInput.value);
+});
+
+clearSearchButton.addEventListener("click", () => {
+    searchInput.value = "";
+    loadCustomers();
+});
 
 function escapeHtml(value) {
     const element = document.createElement("div");

@@ -25,6 +25,20 @@
         </a>
     </p>
 
+    <form id="searchForm" class="search-form">
+        <div class="search-box">
+            <input type="search" id="search" placeholder="Search customers">
+
+            <button type="submit">
+                Search
+            </button>
+
+            <button type="button" id="clearSearch">
+                Clear
+            </button>
+        </div>
+    </form>
+
     <p>
         <a class="button-primary" href="/customer-new-client.html">
             Add Customer
@@ -36,20 +50,20 @@
     </p>
 
     <div class="table-scroll" role="region" aria-label="Data table" tabindex="0">
-    <table id="customerTable" border="1" hidden>
-        <thead>
-            <tr>
-                <th>Business Name</th>
-                <th>Contact Name</th>
-                <th>Phone</th>
-                <th>Active</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
+        <table id="customerTable" border="1" hidden>
+            <thead>
+                <tr>
+                    <th>Business Name</th>
+                    <th>Contact Name</th>
+                    <th>Phone</th>
+                    <th>Active</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
 
-        <tbody id="customerTableBody">
-        </tbody>
-    </table>
+            <tbody id="customerTableBody">
+            </tbody>
+        </table>
     </div>
 
     <p>

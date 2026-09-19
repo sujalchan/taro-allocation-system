@@ -21,6 +21,26 @@
     <h1>Taro Types (JSON API)</h1>
 
     <p>
+        <a href="/taro-types">
+            Server-rendered taro types page
+        </a>
+    </p>
+
+    <form id="searchForm" class="search-form">
+        <div class="search-box">
+            <input type="search" id="search" placeholder="Search Taro Types">
+
+            <button type="submit">
+                Search
+            </button>
+
+            <button type="button" id="clearSearch">
+                Clear
+            </button>
+        </div>
+    </form>
+
+    <p>
         <a class="button-primary" href="/taro-type-new-client.html">
             Add Taro Type
         </a>
@@ -31,33 +51,27 @@
     </p>
 
     <div class="table-scroll" role="region" aria-label="Data table" tabindex="0">
-    <table id="taroTypeTable" border="1" hidden>
+        <table id="taroTypeTable" border="1" hidden>
 
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Name</th>
-                <th>Description</th>
-                <th>Standard Price</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Description</th>
+                    <th>Standard Price</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
 
-        <tbody id="taroTypeTableBody">
-        </tbody>
+            <tbody id="taroTypeTableBody">
+            </tbody>
 
-    </table>
+        </table>
     </div>
 
     <p>
         <a href="/customers-client.html">
             Customers
-        </a>
-    </p>
-
-    <p>
-        <a href="/taro-types">
-            Server-rendered taro types page
         </a>
     </p>
 

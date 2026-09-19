@@ -23,9 +23,10 @@ public class CustomerService {
     }
 
     // Get all customers
-    public List<CustomerResponse> getAllCustomers() {
+    public List<CustomerResponse> getAllCustomers(String search) {
         return customerRepository.findAll()
                 .stream()
+                .filter(customer -> matchesSearch(customer, search))
                 .map(this::toResponse)
                 .toList();
     }
@@ -101,5 +102,20 @@ public class CustomerService {
                 customer.getContactName(),
                 customer.getPhone(),
                 customer.isActive());
+    }
+
+    // Helper method for search query
+    private boolean matchesSearch(Customer customer, String search) {
+        if (search == null || search.isBlank()) {
+            return true;
+        }
+
+        String query = search.trim().toLowerCase();
+
+        return customer.getName().toLowerCase().contains(query)
+                || (customer.getContactName() != null
+                        && customer.getContactName().toLowerCase().contains(query))
+                || (customer.getPhone() != null
+                        && customer.getPhone().toLowerCase().contains(query));
     }
 }

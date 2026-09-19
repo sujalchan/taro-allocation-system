@@ -32,12 +32,12 @@ public class TaroTypePageController {
 
     // show all taro types
     @GetMapping("/taro-types")
-    public String getTaroTypesPage(Model model) {
+    public String getTaroTypesPage(@RequestParam(required = false) String search, Model model) {
 
         model.addAttribute(
                 "taroTypes",
-                taroTypeService.getAllTaroTypes());
-
+                taroTypeService.getAllTaroTypes(search));
+        model.addAttribute("search", search);
         return "taro-types";
     }
 
